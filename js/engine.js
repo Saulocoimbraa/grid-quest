@@ -51,7 +51,7 @@ class GameEngine {
          if (e.target.classList.contains('grid-cell')) {
             if (needsDrag) {
                // Check limits (If reached target elements drawn, clear logic begins if they click again)
-               let limit = this.currentChallenge.targetCount || this.currentChallenge.numBlocks || (["pintar_area", "desenhar_L"].includes(type) ? 10 : 1);
+               let limit = this.currentChallenge.targetCount || this.currentChallenge.numBlocks || (["pintar_area", "desenhar_L", "construcao_livre", "conversao_area"].includes(type) ? 10 : 1);
                if (this.blocksDrawn.length >= limit) {
                   board.querySelectorAll('.painted').forEach(el => el.classList.remove('painted'));
                   this.blocksDrawn = [];
@@ -328,7 +328,10 @@ class GameEngine {
       inputContainer.style.alignItems = 'center';
       inputContainer.style.gap = '10px';
 
-      if (challenge.tipo === "construcao_livre") inputContainer.style.display = "none";
+      if (challenge.tipo === "construcao_livre") {
+         // Construcao_livre mostra input apenas se pede resposta numerica
+         inputContainer.style.display = (challenge.targetAnswer !== undefined) ? 'flex' : 'none';
+      }
 
       if (title) title.innerText = challenge.pergunta;
 
@@ -343,7 +346,18 @@ class GameEngine {
          this.updateLiveStats();
       }
 
-      // Timer Logic!
+      // Badge de referência para desafios de conversão de área
+      const existingBadge = document.getElementById('unit-badge');
+      if (existingBadge) existingBadge.remove();
+      if (challenge.tipo === 'conversao_area' && challenge.elementos_visuais?.referencia?.label) {
+         const badge = document.createElement('div');
+         badge.id = 'unit-badge';
+         badge.style.cssText = 'display:inline-block; background:#facc15; color:#1e3a8a; font-weight:900; font-size:1rem; border:3px solid #000; border-radius:12px; padding:8px 18px; box-shadow:4px 4px 0 #000; margin:8px auto; text-align:center;';
+         badge.innerHTML = `📐 ${challenge.elementos_visuais.referencia.label}`;
+         title.parentNode.insertBefore(badge, title.nextSibling);
+      }
+
+
       if (challenge.tipo === "clique_rapido") {
          let timerDiv = document.createElement('div');
          timerDiv.id = 'timer-display';
@@ -375,8 +389,8 @@ class GameEngine {
             if (challenge.tipo === "quiz_multiplo") {
                board.innerHTML = `<h2 style="color:#2e7300; padding: 50px 20px; font-size:1.8rem; text-align:center;">🤔 Questão Rápida!</h2>`;
             } else {
-               let gridA = Array.from({length: challenge.figA.w * challenge.figA.h}).map(() => '<div style="border: 1px dashed rgba(0,0,0,0.3); width: 100%; height: 100%; box-sizing: border-box;"></div>').join('');
-               let gridB = Array.from({length: challenge.figB.w * challenge.figB.h}).map(() => '<div style="border: 1px dashed rgba(0,0,0,0.3); width: 100%; height: 100%; box-sizing: border-box;"></div>').join('');
+               let gridA = Array.from({ length: challenge.figA.w * challenge.figA.h }).map(() => '<div style="border: 1px dashed rgba(0,0,0,0.3); width: 100%; height: 100%; box-sizing: border-box;"></div>').join('');
+               let gridB = Array.from({ length: challenge.figB.w * challenge.figB.h }).map(() => '<div style="border: 1px dashed rgba(0,0,0,0.3); width: 100%; height: 100%; box-sizing: border-box;"></div>').join('');
 
                board.innerHTML = `
                  <div style="display:flex; justify-content:space-around; align-items:center; width:100%; min-height:220px; padding: 20px 0;">
@@ -455,7 +469,8 @@ class GameEngine {
 
                   if (challenge.tipo === "conversao_area") {
                      if (challenge.elementos_visuais) {
-                        if (challenge.elementos_visuais.alvo.shape === 'credit-card') {
+                        // Guarda contra alvo ausente (ex: tapete, mosaico)
+                        if (challenge.elementos_visuais.alvo?.shape === 'credit-card') {
                            if (r === 1 && c === 1) {
                               cell.classList.add('credit-card-target');
                               cell.classList.remove('grid-cell');
@@ -463,16 +478,16 @@ class GameEngine {
                               cell.style.display = 'none';
                            }
                         }
-                        if (r === 1 && c === 0) {
-                           cell.classList.add('ref-square-blue');
-                           cell.innerHTML = `<span style='font-size:0.6rem; font-weight:bold; color:#fff'>${challenge.elementos_visuais.referencia.label || "Unit"}</span>`;
-                        }
-                     } else {
-                        // Se não tem elementos_visuais (ex: Lago), usa pintura normal
+                        // Pinta os prePaintedCoords mesmo quando há elementos_visuais
                         if (challenge.prePaintedCoords && challenge.prePaintedCoords.some(coord => coord[0] === r && coord[1] === c)) {
-                           cell.classList.add('painted'); // Cor azul do lago (primary-color)
+                           cell.classList.add('painted');
                         }
-                        // Opcional: mostrar legenda flutuante 1q = 2km²
+                        // Exibe badge de referência sobre a malha (não dentro de célula)
+                     } else {
+                        // Sem elementos_visuais: pinturas normais
+                        if (challenge.prePaintedCoords && challenge.prePaintedCoords.some(coord => coord[0] === r && coord[1] === c)) {
+                           cell.classList.add('painted');
+                        }
                      }
                   }
 
@@ -528,7 +543,7 @@ class GameEngine {
       let parsedInput = parseFloat(input?.value);
       const inputVal = isNaN(parsedInput) ? null : parsedInput;
       const rawVal = input ? input.value : "";
-      
+
       // Aliasing robusto: separa o ALVO DA IMAGEM do ALVO DO INPUT
       // target_val_image: quantos quadradinhos devem estar pintados
       const tgtImage = ch.targetArea !== undefined ? ch.targetArea : (ch.target !== undefined ? ch.target : ch.targetAnswer);
@@ -551,7 +566,7 @@ class GameEngine {
       else if (type === "arrastar_e_responder") {
          let painted = document.querySelectorAll('.grid-cell.painted').length;
          let areaCorrect = (painted === tgtImage);
-         
+
          if (tgtInput !== undefined && rawVal !== "") {
             let val = this.normalizeText(rawVal);
             let answerCorrect = false;
@@ -568,7 +583,7 @@ class GameEngine {
       }
       else if (type === "arrastar_medidas") {
          let painted = document.querySelectorAll('.grid-cell.painted').length;
-         isCorrect = (painted === (ch.cols * ch.rows) && inputVal === tgtNum);
+         isCorrect = (painted === (ch.target || (ch.cols * ch.rows)) && inputVal === tgtInput);
       }
       else if (type === "clique_rapido" || type === "area_distributiva" || type === "malha_fantasma" || type === "calcular_area_destacada") {
          isCorrect = (inputVal === tgtInput);
@@ -587,7 +602,6 @@ class GameEngine {
          isCorrect = (inputVal >= ch.targetRange[0] && inputVal <= ch.targetRange[1]);
       }
       else if (type === "conversao_area") {
-         // Na conversão de área, as vezes precisa desenhar (como N3_D33)
          let painted = document.querySelectorAll('.grid-cell.painted').length;
          let needsDrawing = (ch.targetArea !== undefined);
          let areaCorrect = needsDrawing ? (painted === tgtImage) : true;
@@ -596,7 +610,11 @@ class GameEngine {
       else if (type === "construcao_livre") {
          let area = document.querySelectorAll('.grid-cell.painted').length;
          let peri = this.calculatePerimeter();
-         isCorrect = (area === ch.targetArea && peri === ch.targetPerimeter);
+         let targetP = ch.targetPerimeter !== undefined ? ch.targetPerimeter : ch.targetAnswer;
+         isCorrect = (area === ch.targetArea && peri === targetP);
+         if (ch.targetAnswer !== undefined && inputVal !== null) {
+            isCorrect = isCorrect && (inputVal === ch.targetAnswer);
+         }
       }
       else if (type === "tres_salas") {
          if (this.blocksDrawn.length === ch.targetCount) {
@@ -712,13 +730,13 @@ class GameEngine {
          }
 
          if (ch.targetAnswer !== undefined) {
-             feedbackText += `<br><span style="font-size: 0.95em; display:block; margin-top: 5px; color:#991b1b;">A resposta correta era: <b>${ch.targetAnswer}</b></span>`;
+            feedbackText += `<br><span style="font-size: 0.95em; display:block; margin-top: 5px; color:#991b1b;">A resposta correta era: <b>${ch.targetAnswer}</b></span>`;
          } else if (ch.target !== undefined) {
-             feedbackText += `<br><span style="font-size: 0.95em; display:block; margin-top: 5px; color:#991b1b;">A resposta correta era: <b>${ch.target}</b></span>`;
+            feedbackText += `<br><span style="font-size: 0.95em; display:block; margin-top: 5px; color:#991b1b;">A resposta correta era: <b>${ch.target}</b></span>`;
          } else if (ch.targetArea !== undefined) {
-             feedbackText += `<br><span style="font-size: 0.95em; display:block; margin-top: 5px; color:#991b1b;">A área correta era: <b>${ch.targetArea}</b></span>`;
+            feedbackText += `<br><span style="font-size: 0.95em; display:block; margin-top: 5px; color:#991b1b;">A área correta era: <b>${ch.targetArea}</b></span>`;
          } else {
-             feedbackText += `<br><span style="font-size: 0.95em; display:block; margin-top: 5px; color:#991b1b;">Verifique o desenho e a área novamente.</span>`;
+            feedbackText += `<br><span style="font-size: 0.95em; display:block; margin-top: 5px; color:#991b1b;">Verifique o desenho e a área novamente.</span>`;
          }
 
          msg.innerHTML = `<b>Ops!</b> ${feedbackText}<br><span style="color:#be2d06; font-size:1.1rem; font-weight:bold; margin-top: 10px; display:block;">💔 -${penalti} pontos</span>`;
@@ -762,8 +780,18 @@ class GameEngine {
       if (this.sessionErrors === 0) starsCount = 3;
       else if (this.sessionErrors === 1) starsCount = 2; // Para total de 3 desafios
 
+      // Persiste as estrelas e desbloqueia a próxima fase
+      const prevStars = parseInt(localStorage.getItem(`geomaster_stars_N${this.level}`)) || 0;
+      const newStars = Math.max(prevStars, starsCount); // Guarda o melhor resultado
+      localStorage.setItem(`geomaster_stars_N${this.level}`, newStars);
+
+      const currentUnlocked = parseInt(localStorage.getItem('geomaster_unlocked_level')) || 1;
+      if (this.level >= currentUnlocked) {
+         localStorage.setItem('geomaster_unlocked_level', this.level + 1);
+      }
+
       let starsHtml = `<div style="display:flex; justify-content:center; gap:8px; margin-bottom:15px;">`;
-      for(let i=1; i<=3; i++) {
+      for (let i = 1; i <= 3; i++) {
          let c = i <= starsCount ? "#facc15" : "#e5e7eb";
          let p = i <= starsCount ? "drop-shadow(2px 2px 0px #000)" : "";
          let fill = i <= starsCount ? 1 : 0;
