@@ -157,8 +157,38 @@ const level3Challenges = [
   { "id": "N3_D40", "unidade": 3, "tipo": "arrastar_e_responder", "pergunta": "🔥 DESAFIO DO MESTRE: Desenhe um retângulo com área de 24m² onde um dos lados seja 6m. Qual o PERÍMETRO dele?", "targetArea": 24, "targetAnswer": 20, "inputType": "number", "cols": 8, "rows": 6, "dica": "Se a área é 24 e um lado é 6, o outro é 4 (6x4=24). Agora some: 6+4+6+4." }
 ];
 
+// --- NÍVEL 4 (Unidade 3 - Parte 2: Escalas e Dimensões Avançadas) ---
+const level4Challenges = [
+  { "id": "N4_D1", "unidade": 3, "tipo": "conversao_area", "pergunta": "Se duplicarmos os lados de um quadrado de 1m², qual será sua nova área?", "targetAnswer": 4, "inputType": "number", "cols": 4, "rows": 4, "prePaintedCoords": [[1,1]], "dica": "Lado era 1 (área 1). Agora o lado é 2. 2x2 = ?" },
+  { "id": "N4_D2", "unidade": 3, "tipo": "quiz_multiplo", "pergunta": "Um retângulo tem área 20m² e um lado mede 5m. Quanto mede o outro lado?", "targetAnswer": "4m", "inputType": "options", "inputOptions": ["4m", "5m", "15m"] },
+  { "id": "N4_D3", "unidade": 3, "tipo": "construcao_livre", "pergunta": "Desenhe um retângulo com área de 12 unidades e perímetro de 14 unidades.", "targetArea": 12, "targetPerimeter": 14, "cols": 6, "rows": 6, "dica": "Tente um retângulo de 3x4 ou 2x6. Verifique o perímetro!" },
+  { "id": "N4_D4", "unidade": 3, "tipo": "conversao_area", "pergunta": "Um terreno retangular tem 10m por 5m. Qual sua área total?", "targetAnswer": 50, "inputType": "number", "cols": 10, "rows": 5, "prePaintedCoords": [[0,0]], "dica": "Base vezes altura." },
+  { "id": "N4_D5", "unidade": 3, "tipo": "quiz_multiplo", "pergunta": "Se um quadrado tem perímetro de 12m, qual é sua área?", "targetAnswer": "9m²", "inputType": "options", "inputOptions": ["12m²", "9m²", "16m²"], "dica": "Se o perímetro é 12, cada lado mede 3 (12/4)." },
+  { "id": "N4_D6", "unidade": 3, "tipo": "construcao_livre", "pergunta": "Desenhe duas figuras diferentes que tenham 8 unidades de área cada.", "targetArea": 8, "cols": 8, "rows": 8, "dica": "Podem ser retângulos 2x4 ou formas irregulares!" },
+  { "id": "N4_D7", "unidade": 3, "tipo": "conversao_area", "pergunta": "Um tile de cerâmica mede 10cm x 10cm (100cm²). Quantos tiles preciso para cobrir 1000cm²?", "targetAnswer": 10, "inputType": "number", "cols": 5, "rows": 2, "dica": "Divida a área total pela área de um tile." },
+  { "id": "N4_D8", "unidade": 3, "tipo": "quiz_multiplo", "pergunta": "Qual figura tem maior área: um quadrado de lado 4m ou um retângulo de 5m x 3m?", "targetAnswer": "Quadrado (16m²)", "inputType": "options", "inputOptions": ["Quadrado (16m²)", "Retângulo (15m²)", "São iguais"] },
+  { "id": "N4_D9", "unidade": 3, "tipo": "construcao_livre", "pergunta": "Desenhe um quadrado de área 1 e um retângulo de área 4 ao lado.", "targetArea": 5, "cols": 6, "rows": 4, "dica": "Pinte 1 bloco e depois um bloco 4x1 ou 2x2." },
+  { "id": "N4_D10", "unidade": 3, "tipo": "boss_challenge", "pergunta": "Boss Challenge: Construa um retângulo de 10m² e calcule seu perímetro.", "targetArea": 10, "targetAnswer": 14, "cols": 10, "rows": 5, "dica": "Use 5x2. Perímetro = 5+5+2+2." }
+];
+
+// --- NÍVEL 5 (Unidade 4: Cirurgião de Formas - Decomposição) ---
+const level5Challenges = [
+  { "id": "N5_D1", "unidade": 4, "tipo": "conversao_area", "pergunta": "Fatie mentalmente esta figura em dois retângulos. Qual a área total?", "targetAnswer": 12, "inputType": "number", "cols": 6, "rows": 6, "prePaintedCoords": [[1,1], [1,2], [1,3], [2,1], [2,2], [2,3], [3,1], [4,1]], "dica": "Divida em um retângulo 3x2 e uma perna de 2x1." },
+  { "id": "N5_D2", "unidade": 4, "tipo": "quiz_multiplo", "pergunta": "Podemos calcular a área de um 'L' somando dois retângulos menores?", "targetAnswer": "Sim", "inputType": "options", "inputOptions": ["Sim", "Não", "Apenas se for quadrado"] },
+  { "id": "N5_D3", "unidade": 4, "tipo": "conversao_area", "pergunta": "Qual a área desta forma em 'U'?", "targetAnswer": 10, "inputType": "number", "cols": 5, "rows": 5, "prePaintedCoords": [[1,1], [2,1], [3,1], [3,2], [3,3], [3,4], [2,4], [1,4]], "dica": "Decomponha em 3 retângulos ou conte os blocos." },
+  { "id": "N5_D4", "unidade": 4, "tipo": "arrastar_e_responder", "pergunta": "Pinte uma forma em 'L' com área de 7 unidades.", "targetArea": 7, "cols": 5, "rows": 5 },
+  { "id": "N5_D5", "unidade": 4, "tipo": "quiz_multiplo", "pergunta": "Ao decompor uma figura complexa em retângulos, o que acontece com a área total?", "targetAnswer": "Permanece a mesma", "inputType": "options", "inputOptions": ["Aumenta", "Diminui", "Permanece a mesma"] },
+  { "id": "N5_D6", "unidade": 4, "tipo": "conversao_area", "pergunta": "Calcule a área desta 'escada'.", "targetAnswer": 6, "inputType": "number", "cols": 4, "rows": 4, "prePaintedCoords": [[1,1], [2,1], [2,2], [3,1], [3,2], [3,3]], "dica": "1 + 2 + 3 blocos em cada degrau." },
+  { "id": "N5_D7", "unidade": 4, "tipo": "construcao_livre", "pergunta": "Desenhe um retângulo de 3x2 e retire 1 bloco do canto. Qual a área restante?", "targetAnswer": 5, "targetArea": 5, "cols": 4, "rows": 4, "dica": "Pinte o 3x2 (6) e apague um clique se a engine permitir, ou apenas pinte 5 em formato de L." },
+  { "id": "N5_D8", "unidade": 4, "tipo": "quiz_multiplo", "pergunta": "Decompor figuras é útil para:", "targetAnswer": "Facilitar o cálculo usando fórmulas simples", "inputType": "options", "inputOptions": ["Gastar mais tempo", "Facilitar o cálculo usando fórmulas simples", "Mudar a forma da figura"] },
+  { "id": "N5_D9", "unidade": 4, "tipo": "conversao_area", "pergunta": "Uma cruz é formada por 5 quadrados de 2m² cada. Qual a área total?", "targetAnswer": 10, "inputType": "number", "cols": 5, "rows": 5, "prePaintedCoords": [[2,2], [1,2], [3,2], [2,1], [2,3]], "dica": "5 blocos x 2m² cada." },
+  { "id": "N5_D10", "unidade": 4, "tipo": "boss_challenge", "pergunta": "Boss Challenge: Construa uma figura composta por dois retângulos unidos (área total 15).", "targetArea": 15, "cols": 8, "rows": 8, "dica": "Ex: um 3x3 (9) encostado em um 2x3 (6)." }
+];
+
 const database = {
   1: level1Challenges,
   2: level2Challenges,
-  3: level3Challenges
+  3: level3Challenges,
+  4: level4Challenges,
+  5: level5Challenges
 };

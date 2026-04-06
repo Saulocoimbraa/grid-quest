@@ -63,7 +63,19 @@ class GameEngine {
                board.querySelectorAll('.selected-temp').forEach(el => el.classList.remove('selected-temp'));
                this.updateTempSelection(e.target);
             } else if (needsClick) {
-               e.target.classList.toggle('painted');
+               if (this.level === 5) {
+                  // Ciclo de cores para "Cirurgião de Formas" (Decomposição)
+                  if (!e.target.classList.contains('painted') && !e.target.classList.contains('painted-yellow')) {
+                     e.target.classList.add('painted');
+                  } else if (e.target.classList.contains('painted')) {
+                     e.target.classList.remove('painted');
+                     e.target.classList.add('painted-yellow');
+                  } else {
+                     e.target.classList.remove('painted-yellow');
+                  }
+               } else {
+                  e.target.classList.toggle('painted');
+               }
             }
          }
       });
@@ -560,12 +572,14 @@ class GameEngine {
          }
       }
       else if (type === "arrastar_bloco") {
-         let painted = document.querySelectorAll('.grid-cell.painted').length;
+         let painted = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow').length;
          isCorrect = (painted === tgtImage);
       }
+
       else if (type === "arrastar_e_responder") {
-         let painted = document.querySelectorAll('.grid-cell.painted').length;
+         let painted = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow').length;
          let areaCorrect = (painted === tgtImage);
+
 
          if (tgtInput !== undefined && rawVal !== "") {
             let val = this.normalizeText(rawVal);
@@ -582,9 +596,10 @@ class GameEngine {
          }
       }
       else if (type === "arrastar_medidas") {
-         let painted = document.querySelectorAll('.grid-cell.painted').length;
+         let painted = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow').length;
          isCorrect = (painted === (ch.target || (ch.cols * ch.rows)) && inputVal === tgtInput);
       }
+
       else if (type === "clique_rapido" || type === "area_distributiva" || type === "malha_fantasma" || type === "calcular_area_destacada") {
          isCorrect = (inputVal === tgtInput);
       }
@@ -602,14 +617,16 @@ class GameEngine {
          isCorrect = (inputVal >= ch.targetRange[0] && inputVal <= ch.targetRange[1]);
       }
       else if (type === "conversao_area") {
-         let painted = document.querySelectorAll('.grid-cell.painted').length;
+         let painted = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow').length;
          let needsDrawing = (ch.targetArea !== undefined);
+
          let areaCorrect = needsDrawing ? (painted === tgtImage) : true;
          isCorrect = areaCorrect && (inputVal === tgtInput);
       }
       else if (type === "construcao_livre") {
-         let area = document.querySelectorAll('.grid-cell.painted').length;
+         let area = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow').length;
          let peri = this.calculatePerimeter();
+
          let targetP = ch.targetPerimeter !== undefined ? ch.targetPerimeter : ch.targetAnswer;
          isCorrect = (area === ch.targetArea && peri === targetP);
          if (ch.targetAnswer !== undefined && inputVal !== null) {
@@ -624,8 +641,9 @@ class GameEngine {
          }
       }
       else {
-         let paintedCells = document.querySelectorAll('.grid-cell.painted');
+         let paintedCells = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow');
          let cellsCount = paintedCells.length;
+
          let coords = Array.from(paintedCells).map(c => ({ r: parseInt(c.dataset.r), c: parseInt(c.dataset.c) }));
          if (type === "pintar_area") isCorrect = (cellsCount === tgtImage);
          if (type === "calcular_area_destacada") isCorrect = (inputVal === tgtInput);

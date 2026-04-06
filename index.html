@@ -184,10 +184,14 @@
   <script>
     // ── Configuração dos níveis disponíveis ──────────────────────────────────
     const LEVELS = [
-      { id: 1, label: 'O Quadrado', emoji: '⬜', offset: '', delay: '0s' },
-      { id: 2, label: 'O Ladrilhador', emoji: '🧱', offset: '-translate-x-12', delay: '1s' },
-      { id: 3, label: 'Dimensão Real', emoji: '📐', offset: 'translate-x-16', delay: '2s' },
-      { id: 4, label: 'Em breve...', emoji: '🔒', offset: '', delay: '3s' },
+      { id: 1, label: 'O Quadrado', emoji: '⬜', delay: '0s' },
+      { id: 2, label: 'O Ladrilhador', emoji: '🧱', delay: '0.2s' },
+      { id: 3, label: 'Dimensão Real', emoji: '📐', delay: '0.4s' },
+      { id: 4, label: 'Dimensão Real II', emoji: '🏢', delay: '0.6s' },
+      { id: 5, label: 'Cirurgião de Formas', emoji: '✂️', delay: '0.8s' },
+      { id: 6, label: 'Mestre da Estimativa', emoji: '🎲', delay: '1.0s' },
+      { id: 7, label: 'Enigma da Escala', emoji: '🔍', delay: '1.2s' },
+      { id: 8, label: 'Arquiteto Master', emoji: '🏛️', delay: '1.4s' },
     ];
 
     // ── helpers de localStorage ──────────────────────────────────────────────
@@ -223,11 +227,12 @@
         const hasStars = starsEarned > 0;
 
         // Offset de ziguezague
-        const offsets = ['', '-translate-x-12', 'translate-x-16', ''];
+        const patterns = ['', '-translate-x-12', 'translate-x-14', '-translate-x-4'];
+        const currentOffset = patterns[idx % patterns.length];
         const animDelay = lvl.delay || '0s';
 
         const wrap = document.createElement('div');
-        wrap.className = `trail-node-wrap flex flex-col items-center ${offsets[idx]} float-anim`;
+        wrap.className = `trail-node-wrap flex flex-col items-center ${currentOffset} float-anim`;
         wrap.style.animationDelay = animDelay;
 
         if (isUnlocked) {
