@@ -45,18 +45,20 @@ class GameEngine {
          if (!this.currentChallenge) return;
          let type = this.currentChallenge.tipo;
 
-         let needsDrag = ["arrastar_bloco", "arrastar_e_responder", "arrastar_medidas", "ladrilhador_inverso", "problema_natural", "tres_salas", "estimativa", "construcao_livre"].includes(type);
-         let needsClick = ["pintar_area", "desenhar_quadrado", "desenhar_retangulo", "desenhar_L", "calcular_area_destacada", "clique_rapido", "area_distributiva", "conversao_area"].includes(type);
+         let needsDrag = ["arrastar_bloco", "arrastar_e_responder", "arrastar_medidas", "ladrilhador_inverso", "problema_natural", "tres_salas", "estimativa"].includes(type);
+         let needsClick = ["pintar_area", "desenhar_quadrado", "desenhar_retangulo", "desenhar_L", "calcular_area_destacada", "clique_rapido", "area_distributiva", "conversao_area", "boss_challenge", "construcao_livre"].includes(type);
 
          if (e.target.classList.contains('grid-cell')) {
-            if (needsDrag) {
-               // Check limits (If reached target elements drawn, clear logic begins if they click again)
-               let limit = this.currentChallenge.targetCount || this.currentChallenge.numBlocks || (["pintar_area", "desenhar_L", "construcao_livre", "conversao_area"].includes(type) ? 10 : 1);
-               if (this.blocksDrawn.length >= limit) {
-                  board.querySelectorAll('.painted').forEach(el => el.classList.remove('painted'));
-                  this.blocksDrawn = [];
-               }
+            // Prioridade 1: Se a célula já estiver pintada de qualquer cor, desmarcar ao clicar (Togle universal)
+            if (e.target.classList.contains('painted') || e.target.classList.contains('painted-yellow')) {
+               e.target.classList.remove('painted');
+               e.target.classList.remove('painted-yellow');
+               // Atualiza a lista de blocos (se for modo arrasto)
+               this.blocksDrawn = this.blocksDrawn.filter(b => !(b.r === parseInt(e.target.dataset.r) && b.c === parseInt(e.target.dataset.c)));
+               return; // Interrompe para não disparar o ciclo de cores ou novos arrastos imediatamente
+            }
 
+            if (needsDrag) {
                this.isDragging = true;
                this.dragAnchor = { r: parseInt(e.target.dataset.r), c: parseInt(e.target.dataset.c) };
                this.tempSelection = [];
@@ -639,6 +641,13 @@ class GameEngine {
             let uniqueFormats = new Set(this.blocksDrawn.map(b => `${Math.min(b.w, b.h)}x${Math.max(b.w, b.h)}`));
             isCorrect = allMatchArea && (uniqueFormats.size === ch.targetCount);
          }
+      }
+      else if (type === "boss_challenge") {
+         let area = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow').length;
+         let needsInput = (tgtInput !== undefined && inputVal !== null);
+         let areaCorrect = (area === (ch.targetArea || ch.target));
+         let inputCorrect = needsInput ? (inputVal === tgtInput) : true;
+         isCorrect = areaCorrect && inputCorrect;
       }
       else {
          let paintedCells = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow');
