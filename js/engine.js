@@ -169,7 +169,7 @@ class GameEngine {
          el.classList.remove('border-top-p', 'border-right-p', 'border-bottom-p', 'border-left-p', 'area-highlight');
       });
 
-      const paintedCells = board.querySelectorAll('.painted');
+      const paintedCells = board.querySelectorAll('.painted, .painted-yellow');
       paintedCells.forEach(cell => cell.classList.add('area-highlight'));
 
       const coords = new Set(Array.from(paintedCells).map(c => `${c.dataset.r},${c.dataset.c}`));
@@ -189,14 +189,14 @@ class GameEngine {
       const stats = document.getElementById('live-stats');
       if (!stats) return;
 
-      const painted = document.querySelectorAll('.grid-cell.painted').length;
+      const painted = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow').length;
       const peri = this.calculatePerimeter();
 
       stats.innerHTML = `<span class="area">Área: ${painted}m²</span> | <span class="peri">Perímetro: ${peri}m</span>`;
    }
 
    calculatePerimeter() {
-      const painted = Array.from(document.querySelectorAll('.grid-cell.painted'));
+      const painted = Array.from(document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow'));
       if (painted.length === 0) return 0;
 
       const coords = new Set(painted.map(c => `${c.dataset.r},${c.dataset.c}`));
@@ -333,7 +333,8 @@ class GameEngine {
          inputEl.type = challenge.inputType || 'number';
          inputEl.id = 'answer-input';
          inputEl.className = 'w-full bg-white border-2 border-[#383830] p-4 font-black text-2xl rounded-2xl shadow-[6px_6px_0px_#383830] text-center mb-4 transition-all focus:shadow-[2px_2px_0px_#383830] focus:translate-x-[2px] focus:translate-y-[2px] outline-none';
-         inputEl.placeholder = challenge.inputPlaceholder || 'Área=?';
+         const isPerim = challenge.pergunta.toLowerCase().includes('perímetro');
+         inputEl.placeholder = challenge.inputPlaceholder || (isPerim ? '📏 Perímetro=?' : '📐 Área=?');
          inputContainer.appendChild(inputEl);
       }
 
@@ -342,9 +343,9 @@ class GameEngine {
       inputContainer.style.alignItems = 'center';
       inputContainer.style.gap = '10px';
 
-      if (challenge.tipo === "construcao_livre") {
-         // Construcao_livre mostra input apenas se pede resposta numerica
-         inputContainer.style.display = (challenge.targetAnswer !== undefined) ? 'flex' : 'none';
+      if (challenge.tipo === "construcao_livre" || challenge.tipo === "boss_challenge") {
+         // Esses tipos mostram input apenas se pede resposta numérica
+         inputContainer.style.display = (challenge.targetAnswer !== undefined || challenge.target !== undefined) ? 'flex' : 'none';
       }
 
       if (title) title.innerText = challenge.pergunta;
@@ -352,7 +353,7 @@ class GameEngine {
       // Live Stats
       const existingStats = document.getElementById('live-stats');
       if (existingStats) existingStats.remove();
-      if (challenge.tipo === "construcao_livre") {
+      if (challenge.tipo === "construcao_livre" || challenge.tipo === "boss_challenge") {
          const statsRow = document.createElement('div');
          statsRow.id = 'live-stats';
          statsRow.className = 'live-stats';
@@ -402,31 +403,38 @@ class GameEngine {
 
             if (challenge.tipo === "quiz_multiplo") {
                board.innerHTML = `<h2 style="color:#2e7300; padding: 50px 20px; font-size:1.8rem; text-align:center;">🤔 Questão Rápida!</h2>`;
-            } else {
-               let gridA = Array.from({ length: challenge.figA.w * challenge.figA.h }).map(() => '<div style="border: 1px dashed rgba(0,0,0,0.3); width: 100%; height: 100%; box-sizing: border-box;"></div>').join('');
-               let gridB = Array.from({ length: challenge.figB.w * challenge.figB.h }).map(() => '<div style="border: 1px dashed rgba(0,0,0,0.3); width: 100%; height: 100%; box-sizing: border-box;"></div>').join('');
+                const renderShape = (fig, color) => {
+                  let style = `width:${fig.w * 35}px; height:${fig.h * 35}px; background:${color}; border:3px solid var(--border-color); box-shadow: 4px 4px 0 var(--border-color); position:relative; display:grid; grid-template-columns: repeat(${fig.w}, 1fr); grid-template-rows: repeat(${fig.h}, 1fr);`;
+                  let innerGrid = Array.from({ length: fig.w * fig.h }).map(() => '<div style="border: 0.5px solid rgba(255,255,255,0.1); width:100%; height:100%;"></div>').join('');
+                  
+                  if (fig.shapeType === 'triangulo') style += `clip-path: polygon(0 100%, 50% 0, 100% 100%);`;
+                  if (fig.shapeType === 'trapezio') style += `clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%);`;
+                  if (fig.shapeType === 'circulo') style += `border-radius: 50%; overflow:hidden;`;
+                  if (fig.shapeType === 'semicirculo') style += `border-radius: 100% 100% 0 0 / 200% 200% 0 0;`;
 
-               board.innerHTML = `
-                 <div style="display:flex; justify-content:space-around; align-items:center; width:100%; min-height:220px; padding: 20px 0;">
-                    <div style="text-align:center; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;">
-                       <div style="width:${challenge.figA.w * 35}px; height:${challenge.figA.h * 35}px; background:#60a5fa; border:3px solid var(--border-color); box-shadow: 4px 4px 0 var(--border-color); margin:0 auto 15px; display: grid; grid-template-columns: repeat(${challenge.figA.w}, 1fr); grid-template-rows: repeat(${challenge.figA.h}, 1fr);">
-                          ${gridA}
-                       </div>
-                       <div>
-                          <b style="color:#383830">Figura A</b><br><span style="color:#383830; font-size:0.9rem; font-weight:bold">${challenge.figA.label || ''}</span>
-                       </div>
-                    </div>
-                    <div style="text-align:center; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;">
-                       <div style="width:${challenge.figB.w * 35}px; height:${challenge.figB.h * 35}px; background:#facc15; border:3px solid var(--border-color); box-shadow: 4px 4px 0 var(--border-color); margin:0 auto 15px; display: grid; grid-template-columns: repeat(${challenge.figB.w}, 1fr); grid-template-rows: repeat(${challenge.figB.h}, 1fr);">
-                          ${gridB}
-                       </div>
-                       <div>
-                          <b style="color:#383830">Figura B</b><br><span style="color:#383830; font-size:0.9rem; font-weight:bold">${challenge.figB.label || ''}</span>
-                       </div>
-                    </div>
-                 </div>
-              `;
-            }
+                  return `
+                     <div style="text-align:center; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap:10px;">
+                        <div style="${style}">
+                           ${innerGrid}
+                           <span style="position:absolute; top:-25px; left:50%; transform:translateX(-50%); font-size:0.7rem; font-weight:900; background:white; padding:2px 5px; border:1px solid #333; z-index:10; color:#000">${fig.labelTop || ''}</span>
+                           <span style="position:absolute; bottom:-10px; left:50%; transform:translateX(-50%); font-size:0.7rem; font-weight:900; background:white; padding:2px 5px; border:1px solid #333; z-index:10; color:#000">${fig.labelBottom || ''}</span>
+                           <span style="position:absolute; right:-25px; top:50%; transform:translateY(-50%); font-size:0.7rem; font-weight:900; background:white; padding:2px 5px; border:1px solid #333; z-index:10; color:#000">${fig.labelSide || ''}</span>
+                        </div>
+                        <div>
+                           <b style="color:#1e3a8a; font-size:1.1rem">${fig.label || ''}</b>
+                        </div>
+                     </div>
+                  `;
+                };
+
+                board.innerHTML = `
+                  <div style="display:flex; justify-content:space-around; align-items:center; width:100%; min-height:220px; padding: 20px 0;">
+                     ${renderShape(challenge.figA, '#60a5fa')}
+                     <div style="font-size:1.5rem; font-weight:900; color:#1e3a8a">VS</div>
+                     ${renderShape(challenge.figB, '#facc15')}
+                  </div>
+               `;
+             }
          } else {
             board.innerHTML = '';
             // Define colunas dinamicamente baseado em fracionários (1fr) para caber na tela sem barra
@@ -483,7 +491,6 @@ class GameEngine {
 
                   if (challenge.tipo === "conversao_area") {
                      if (challenge.elementos_visuais) {
-                        // Guarda contra alvo ausente (ex: tapete, mosaico)
                         if (challenge.elementos_visuais.alvo?.shape === 'credit-card') {
                            if (r === 1 && c === 1) {
                               cell.classList.add('credit-card-target');
@@ -492,15 +499,26 @@ class GameEngine {
                               cell.style.display = 'none';
                            }
                         }
-                        // Pinta os prePaintedCoords mesmo quando há elementos_visuais
-                        if (challenge.prePaintedCoords && challenge.prePaintedCoords.some(coord => coord[0] === r && coord[1] === c)) {
-                           cell.classList.add('painted');
+                        if (challenge.prePaintedCoords) {
+                           const target = challenge.prePaintedCoords.find(coord => 
+                              (Array.isArray(coord) && coord[0] === r && coord[1] === c) || 
+                              (coord.r === r && coord.c === c)
+                           );
+                           if (target) {
+                              if (target.shape) cell.classList.add(`cell-${target.shape}`);
+                              else cell.classList.add('painted');
+                           }
                         }
-                        // Exibe badge de referência sobre a malha (não dentro de célula)
                      } else {
-                        // Sem elementos_visuais: pinturas normais
-                        if (challenge.prePaintedCoords && challenge.prePaintedCoords.some(coord => coord[0] === r && coord[1] === c)) {
-                           cell.classList.add('painted');
+                        if (challenge.prePaintedCoords) {
+                           const target = challenge.prePaintedCoords.find(coord => 
+                              (Array.isArray(coord) && coord[0] === r && coord[1] === c) || 
+                              (coord.r === r && coord.c === c)
+                           );
+                           if (target) {
+                               if (target.shape) cell.classList.add(`cell-${target.shape}`);
+                               else cell.classList.add('painted');
+                           }
                         }
                      }
                   }

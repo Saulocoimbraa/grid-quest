@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Auditoria Grid Quest - V3</title>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --border: #334155;
+            --card: #ffffff;
+            --primary: #3b82f6;
+            --accent: #facc15;
+            --painted: #6366f1;
+            --painted-yellow: #fbbf24;
+            --painted-blue: #3b82f6;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 40px 20px;
+            color: #1e293b;
+            line-height:1.5;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        header {
+            background: white;
+            padding: 30px;
+            border: 5px solid var(--border);
+            box-shadow: 12px 12px 0 var(--border);
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        h1 { margin: 0; font-size: 2.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; }
+
+        .level-section { margin-bottom: 100px; }
+
+        .level-title {
+            background: var(--accent);
+            display: inline-block;
+            padding: 15px 50px;
+            border: 5px solid var(--border);
+            border-radius: 15px;
+            box-shadow: 6px 6px 0 var(--border);
+            font-weight: 900;
+            font-size: 1.8rem;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+        }
+
+        .challenge-card {
+            background: var(--card);
+            border: 4px solid var(--border);
+            border-radius: 20px;
+            margin-bottom: 40px;
+            padding: 0;
+            overflow: hidden;
+            box-shadow: 8px 8px 0 var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: 0.2s ease;
+        }
+
+        .card-header {
+            background: #f1f5f9;
+            padding: 20px 30px;
+            border-bottom: 4px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .challenge-id { font-weight: 900; font-size: 1.4rem; }
+        .type-badge {
+            background: white;
+            padding: 6px 15px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            border: 3px solid var(--border);
+        }
+
+        .card-body {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 0;
+        }
+
+        .main-info { padding: 30px; border-right: 4px solid var(--border); }
+        .visual-preview { padding: 30px; background: #fbfbfb; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+
+        .question-text { font-size: 1.4rem; font-weight: 900; margin-bottom: 20px; color: #000; }
+        
+        .hint-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 25px; }
+        
+        .hint-box {
+            background: #eff6ff;
+            padding: 15px 20px;
+            border: 3px solid #3b82f6;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            color: #1e40af;
+            font-weight: 500;
+        }
+
+        .hint-box.default {
+            background: #fdf2f8;
+            border-color: #ec4899;
+            color: #9d174d;
+        }
+
+        .mechanics-mockup {
+            border: 3px solid #cbd5e1;
+            padding: 20px;
+            border-radius: 15px;
+            background: #fafafa;
+        }
+
+        .mock-label { font-size: 0.75rem; text-transform: uppercase; font-weight: 900; color: #475569; margin-bottom: 12px; display: block;}
+        
+        .mock-input {
+            width: 100%;
+            padding: 12px;
+            border: 3px solid var(--border);
+            border-radius: 10px;
+            font-weight: bold;
+            background: #ffffff;
+            color:#64748b;
+        }
+
+        .mock-options { display: flex; flex-direction: column; gap: 10px; }
+        .mock-opt {
+            padding: 10px 15px;
+            border: 3px solid var(--border);
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            background: white;
+        }
+        .mock-opt.correct { background: #84fb42; border-color: #2e7300; color: #2e7300; box-shadow: 4px 4px 0 #2e7300; }
+
+        /* Grid Preview */
+        .mini-grid {
+            display: grid;
+            border: 3px solid var(--border);
+            background: #cbd5e1;
+            padding: 1px;
+            gap: 1px;
+        }
+        .mini-cell {
+            width: 25px;
+            height: 25px;
+            background: white;
+        }
+        .mini-cell.painted { background: var(--painted); border: 1px solid rgba(0,0,0,0.1); }
+        .mini-cell.painted-yellow { background: var(--painted-yellow); }
+        .mini-cell.painted-blue { background: var(--painted-blue); }
+
+        /* Primitivas Geométricas para Auditoria (Nível 8) */
+        .cell-tri-tl { background: linear-gradient(135deg, var(--painted) 50%, transparent 50%) !important; }
+        .cell-tri-tr { background: linear-gradient(225deg, var(--painted) 50%, transparent 50%) !important; }
+        .cell-tri-bl { background: linear-gradient(45deg, var(--painted) 50%, transparent 50%) !important; }
+        .cell-tri-br { background: linear-gradient(315deg, var(--painted) 50%, transparent 50%) !important; }
+        .cell-circle { border-radius: 50% !important; background-color: var(--painted) !important; }
+        .cell-semic-t { border-radius: 100% 100% 0 0 / 200% 200% 0 0 !important; background-color: var(--painted) !important; }
+        .cell-semic-b { border-radius: 0 0 100% 100% / 0 0 200% 200% !important; background-color: var(--painted) !important; }
+
+        /* Answer Key */
+        .answer-key {
+            background: var(--border);
+            color: #fff;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .gabarito-label { text-transform: uppercase; font-size: 0.8rem; font-weight: 900; letter-spacing: 2px; color: #94a3b8; }
+        .gabarito-value { font-size: 1.8rem; font-weight: 950; color: #4ade80; }
+
+        .unit-badge {
+            background: var(--accent);
+            padding: 6px 15px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 900;
+            border: 3px solid var(--border);
+            box-shadow: 3px 3px 0 var(--border);
+        }
+
+        .feedback-box {
+            font-size: 0.85rem;
+            color: #10b981;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 1000px) {
+            .card-body { grid-template-columns: 1fr; }
+            .visual-preview { border-top: 4px solid var(--border); }
+            .main-info { border-right: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Relatório Auditório Grid Quest</h1>
+            <p>Verificação pedagógica total: Todas as questões, previsões de dicas e gabaritos.</p>
+        </header>
+
+        <div id="audit-root"></div>
+    </div>
+
+    <!-- Puxa os dados reais -->
+    <script src="js/data.js"></script>
+
+    <script>
+        const allLevels = [
+            { title: "Nível 1: Introdução à Malha", data: typeof level1Challenges !== 'undefined' ? level1Challenges : [] },
+            { title: "Nível 2: Multiplicação Geométrica", data: typeof level2Challenges !== 'undefined' ? level2Challenges : [] },
+            { title: "Nível 3: Área vs Perímetro", data: typeof level3Challenges !== 'undefined' ? level3Challenges : [] },
+            { title: "Nível 4: Desafios do Arquiteto", data: typeof level4Challenges !== 'undefined' ? level4Challenges : [] },
+            { title: "Nível 5: Decomposição e Molduras", data: typeof level5Challenges !== 'undefined' ? level5Challenges : [] },
+            { title: "Nível 6: Estimativa Espacial", data: typeof level6Challenges !== 'undefined' ? level6Challenges : [] },
+            { title: "Nível 7: O Enigma da Escala", data: typeof level7Challenges !== 'undefined' ? level7Challenges : [] },
+            { title: "Nível 8: Arquiteto Master", data: typeof level8Challenges !== 'undefined' ? level8Challenges : [] }
+        ];
+
+        const root = document.getElementById('audit-root');
+
+        allLevels.forEach(lvl => {
+            if (lvl.data.length === 0) return;
+
+            const section = document.createElement('div');
+            section.className = 'level-section';
+            section.innerHTML = `<div class="level-title">${lvl.title}</div>`;
+
+            lvl.data.forEach(ch => {
+                const card = document.createElement('div');
+                card.className = 'challenge-card';
+
+                // --- MECÂNICA ---
+                let mechanicsHTML = '';
+                if (ch.inputType === 'options') {
+                    mechanicsHTML = `<span class="mock-label">Interação: Botões de Alternativa</span>
+                                    <div class="mock-options">
+                                        ${ch.inputOptions.map(opt => `<div class="mock-opt ${opt === ch.targetAnswer ? 'correct' : ''}">${opt} ${opt === ch.targetAnswer ? ' (Correto)' : ''}</div>`).join('')}
+                                    </div>`;
+                } else if (ch.inputType === 'number' || ch.targetAnswer !== undefined) {
+                    mechanicsHTML = `<span class="mock-label">Interação: Digitar Número</span>
+                                     <div class="mock-input">Placeholder: ${ch.pergunta.toLowerCase().includes('perímetro') ? 'Medir Contorno' : 'Medir Área'}</div>`;
+                } else {
+                    mechanicsHTML = `<span class="mock-label">Interação: Pintar/Arrastar no Grid</span>
+                                     <div class="mock-input" style="border-style:dashed; opacity:0.6; text-align:center">Nesta questão o aluno desenha a resposta</div>`;
+                }
+
+                // --- DICAS (Pedagógicas e Padrão do Sistema) ---
+                let hintsHTML = '';
+                if (ch.dica) {
+                    hintsHTML += `<div class="hint-box">💡 <b>Dica Específica:</b><br>${ch.dica}</div>`;
+                }
+                
+                // Simula o sistema de dicas automáticas do engine.js
+                if (ch.unidade === 2 && !ch.dica) {
+                    hintsHTML += `<div class="hint-box default">⚙️ <b>Dica Padrão (Unid 2):</b><br>1 linha horizontal tem ${ch.cols || ''} quadrados... pense nisso!</div>`;
+                } else if (ch.unidade === 3 && !ch.dica) {
+                    hintsHTML += `<div class="hint-box default">⚙️ <b>Dica Padrão (Unid 3):</b><br>O Perímetro é apenas o contorno por FORA. A Área é a pintura por DENTRO!</div>`;
+                }
+
+                if (!hintsHTML) {
+                    hintsHTML = `<div class="hint-box" style="background:#f1f5f9; border-color:#94a3b8; color:#475569">ℹ️ Nenhuma dica específica definida.</div>`;
+                }
+
+                // --- VISUAL DO GRID / FIGURAS ---
+                let visualHTML = '';
+
+                const renderAuditShape = (fig, color) => {
+                    const cellW = 25;
+                    const cellH = 25;
+                    let style = `width:${fig.w * cellW}px; height:${fig.h * cellH}px; background:${color}; border:2px solid #333; position:relative; box-shadow: 2px 2px 0 #333; display:grid; grid-template-columns: repeat(${fig.w}, 1fr);`;
+                    let innerGrid = Array.from({ length: fig.w * fig.h }).map(() => '<div style="border: 0.5px solid rgba(255,255,255,0.1); width:100%; height:100%;"></div>').join('');
+                    
+                    if (fig.shapeType === 'triangulo') style += `clip-path: polygon(0 100%, 50% 0, 100% 100%);`;
+                    if (fig.shapeType === 'trapezio') style += `clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%);`;
+                    if (fig.shapeType === 'circulo') style += `border-radius: 50%; overflow:hidden;`;
+                    if (fig.shapeType === 'semicirculo') style += `border-radius: 100% 100% 0 0 / 200% 200% 0 0;`;
+
+                    return `
+                        <div style="text-align:center; display: flex; flex-direction: column; align-items: center; gap:8px;">
+                            <div style="${style}">
+                                ${innerGrid}
+                                <span style="position:absolute; top:-20px; left:50%; transform:translateX(-50%); font-size:0.6rem; font-weight:900; background:white; padding:1px 3px; border:1px solid #333; z-index:10; color:#000">${fig.labelTop || ''}</span>
+                                <span style="position:absolute; bottom:-10px; left:50%; transform:translateX(-50%); font-size:0.6rem; font-weight:900; background:white; padding:1px 3px; border:1px solid #333; z-index:10; color:#000">${fig.labelBottom || ''}</span>
+                                <span style="position:absolute; right:-20px; top:50%; transform:translateY(-50%); font-size:0.6rem; font-weight:900; background:white; padding:1px 3px; border:1px solid #333; z-index:10; color:#000">${fig.labelSide || ''}</span>
+                            </div>
+                            <div style="font-size:0.75rem; font-weight:bold; color:#1e3a8a">${fig.label || ''}</div>
+                        </div>
+                    `;
+                }
+
+                if (ch.figA && ch.figB) {
+                    visualHTML = `
+                         <div style="display:flex; justify-content:center; align-items:center; gap:20px; width:100%; background:#f8fafc; padding:20px; border:2px solid #e2e8f0;">
+                            ${renderAuditShape(ch.figA, '#60a5fa')}
+                            <div style="font-weight:900; color:#cbd5e1">VS</div>
+                            ${renderAuditShape(ch.figB, '#facc15')}
+                         </div>
+                    `;
+                } else if (ch.cols && ch.rows) {
+                    const gridStyle = `grid-template-columns: repeat(${ch.cols}, 25px); grid-template-rows: repeat(${ch.rows}, 25px); width: fit-content;`;
+                    let cellsHTML = '';
+                    for (let r = 0; r < ch.rows; r++) {
+                        for (let c = 0; c < ch.cols; c++) {
+                            let classes = 'mini-cell';
+                            
+                            if (ch.prePaintedCoords) {
+                                const target = ch.prePaintedCoords.find(coord => 
+                                    (Array.isArray(coord) && coord[0] === r && coord[1] === c) || 
+                                    (coord.r === r && coord.c === c)
+                                );
+                                if (target) {
+                                    if (typeof target === 'object' && target.shape) classes += ` cell-${target.shape}`;
+                                    else classes += ' painted';
+                                }
+                            } else if (ch.prePaintedFull || ch.tipo === 'malha_fantasma') {
+                                classes += ' painted';
+                            }
+                            
+                            if (ch.colorSplit) {
+                                if (ch.colorSplit.cA !== undefined && c < ch.colorSplit.cA) classes += ' painted-blue';
+                                else if (ch.colorSplit.rA !== undefined && r < ch.colorSplit.rA) classes += ' painted-blue';
+                            }
+                            cellsHTML += `<div class="${classes}"></div>`;
+                        }
+                    }
+                    visualHTML = `<div class="mini-grid" style="${gridStyle}">${cellsHTML}</div>
+                                  ${ch.elementos_visuais?.referencia?.label ? `<div class="unit-badge">📐 ${ch.elementos_visuais.referencia.label}</div>` : ''}`;
+                } else if (ch.figA && ch.figB) {
+                    visualHTML = `
+                        <div style="display:flex; gap:15px; align-items:flex-end">
+                            <div style="background:var(--painted); width:${ch.figA.w * 20}px; height:${ch.figA.h * 20}px; border:3px solid #000; box-shadow:3px 3px 0 #000"></div>
+                            <div style="background:var(--accent); width:${ch.figB.w * 20}px; height:${ch.figB.h * 20}px; border:3px solid #000; box-shadow:3px 3px 0 #000"></div>
+                        </div>
+                        <span style="font-size:0.8rem; font-weight:800; margin-top:10px">${ch.figA.label} vs ${ch.figB.label}</span>
+                    `;
+                }
+
+                const targetVal = ch.targetAnswer !== undefined ? ch.targetAnswer : (ch.targetArea || ch.target || 'N/A');
+
+                card.innerHTML = `
+                    <div class="card-header">
+                        <span class="challenge-id">${ch.id}</span>
+                        <div style="display:flex; gap:10px">
+                            <span class="type-badge" style="background:#fef3c7; border-color:#d97706">U${ch.unidade}</span>
+                            <span class="type-badge">${ch.tipo.replace(/_/g, ' ')}</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="main-info">
+                            <div class="question-text">${ch.pergunta}</div>
+                            <div class="hint-container">
+                                ${hintsHTML}
+                            </div>
+                            <div class="mechanics-mockup">
+                                ${mechanicsHTML}
+                            </div>
+                            ${ch.feedbackAghy ? `<div class="feedback-box">✨ <b>Feedback Extra (após acerto):</b><br>${ch.feedbackAghy}</div>` : ''}
+                        </div>
+                        <div class="visual-preview">
+                            <span class="mock-label">Visualização da Malha</span>
+                            ${visualHTML}
+                        </div>
+                    </div>
+                    <div class="answer-key">
+                        <div class="gabarito-label">Gabarito Master</div>
+                        <div class="gabarito-value">${targetVal}</div>
+                    </div>
+                `;
+                section.appendChild(card);
+            });
+            root.appendChild(section);
+        });
+    </script>
+</body>
+</html>
