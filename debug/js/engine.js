@@ -8,7 +8,7 @@ class GameEngine {
       this.currentChallenge = null;
 
       this.consecutiveErrors = 0;
-      this.totalToPlay = 3;
+      this.totalToPlay = 21;
       this.playedThisSession = 0;
 
       // Novos controles Nível 2
@@ -311,7 +311,7 @@ class GameEngine {
       const existingHint = document.getElementById('hint-display');
       if (existingHint) existingHint.remove();
 
-      let isCalcular = ["calcular_area_destacada", "clique_rapido", "area_distributiva", "malha_fantasma", "problema_natural", "arrastar_medidas", "arrastar_e_responder", "quiz_multiplo", "quiz_duas_figuras", "quiz_com_figura", "estimativa", "conversao_area", "cirurgia_area", "completar_frase"].includes(challenge.tipo);
+      let isCalcular = ["calcular_area_destacada", "clique_rapido", "area_distributiva", "malha_fantasma", "problema_natural", "arrastar_medidas", "arrastar_e_responder", "quiz_multiplo", "quiz_duas_figuras", "quiz_com_figura", "estimativa", "conversao_area", "cirurgia_area"].includes(challenge.tipo);
 
       // Container de Input Numérico
       let inputContainer = document.getElementById('input-container');
@@ -414,16 +414,14 @@ class GameEngine {
       }
 
       if (board) {
-         if (challenge.tipo === "quiz_multiplo" || challenge.tipo === "quiz_duas_figuras" || challenge.tipo === "quiz_com_figura" || challenge.tipo === "completar_frase") {
+         if (challenge.tipo === "quiz_multiplo" || challenge.tipo === "quiz_duas_figuras" || challenge.tipo === "quiz_com_figura") {
             board.style.gridTemplateColumns = '1fr';
             board.style.gridTemplateRows = 'auto';
             board.classList.remove('fantasma-board');
             board.style.backgroundColor = 'transparent';
             board.style.border = 'none';
 
-            if (challenge.tipo === "completar_frase") {
-               board.innerHTML = `<h2 style="color:#2e7300; padding: 50px 20px; font-size:1.8rem; text-align:center;">🧩 Complete a Frase!</h2>`;
-            } else if (challenge.tipo === "quiz_multiplo" || challenge.tipo === "quiz_duas_figuras" || challenge.tipo === "quiz_com_figura") {
+            if (challenge.tipo === "quiz_multiplo" || challenge.tipo === "quiz_duas_figuras" || challenge.tipo === "quiz_com_figura") {
                board.innerHTML = `<h2 style="color:#2e7300; padding: 50px 20px; font-size:1.8rem; text-align:center;">🤔 Questão Rápida!</h2>`;
                 const renderShape = (fig, color) => {
                   let style = `width:${fig.w * 35}px; height:${fig.h * 35}px; background:${color}; border:3px solid var(--border-color); box-shadow: 4px 4px 0 var(--border-color); position:relative; display:grid; grid-template-columns: repeat(${fig.w}, 1fr); grid-template-rows: repeat(${fig.h}, 1fr);`;
@@ -668,7 +666,7 @@ class GameEngine {
 
       const noBonus = isTimeUp || this.timeWasUp;
 
-      if (type === "quiz_multiplo" || type === "quiz_duas_figuras" || type === "quiz_com_figura" || type === "completar_frase") {
+      if (type === "quiz_multiplo" || type === "quiz_duas_figuras" || type === "quiz_com_figura") {
          if (tgtInput !== undefined && rawVal !== "") {
             let val = this.normalizeText(rawVal);
             let tgt = this.normalizeText(tgtInput);
