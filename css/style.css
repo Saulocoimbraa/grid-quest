@@ -230,27 +230,42 @@ h1, h2, h3 {
 /* Modo Sem Malha (Fantasma) */
 .fantasma-board {
   gap: 0 !important;
-  background: transparent !important;
-  box-shadow: 0 0 0 6px #1e3a8a, 0 10px 40px rgba(30, 58, 138, 0.2) !important;
-  border: none !important;
+  background: #fff !important;
+  box-shadow: 0 0 0 4px #1e3a8a !important;
+  border: none !important; /* Removed outer dashed border to avoid doubling */
   padding: 0 !important;
-  border-radius: 12px !important;
-  overflow: hidden !important;
+  border-radius: 0 !important;
 }
 
 .fantasma-board .grid-cell {
-  background: transparent !important;
-  border: none !important;
+  background: #fff !important;
+  border: 1px dashed transparent !important; /* Reserve the slot */
   box-shadow: none !important;
   cursor: default !important;
+  border-radius: 0 !important;
+  animation: ghost-line-fade 0.7s infinite alternate ease-in-out !important;
 }
 
-.fantasma-board .grid-cell.painted {
-  background-color: #dbeafe !important; /* Light Ghostly Blue */
-  border: none !important;
+.fantasma-board .grid-cell.painted, .fantasma-board .grid-cell.malha-fantasma {
+  background-color: #fff !important; 
   box-shadow: none !important;
   transform: none !important;
+  animation: ghost-figure-blink 0.7s infinite alternate ease-in-out !important;
 }
+
+@keyframes ghost-line-fade {
+  0% { border-color: rgba(59, 130, 246, 0) !important; }
+  100% { border-color: rgba(59, 130, 246, 0.4) !important; } /* Increased from 0.1 */
+}
+
+@keyframes ghost-figure-blink {
+  0% { border-color: rgba(59, 130, 246, 0) !important; }
+  100% { border-color: rgba(59, 130, 246, 0.9) !important; } /* Much stronger visual */
+}
+
+
+
+
 
 .actions {
   display: flex;
@@ -396,13 +411,7 @@ h1, h2, h3 {
 .grid-cell.painted-green { background-color: #4ade80; border: 1px solid #000; }
 .grid-cell.painted-orange { background-color: #fb923c; border: 1px solid #000; }
 
-.fantasma-board {
-  background-color: #fff !important;
-}
-.fantasma-board .grid-cell {
-  background-color: transparent !important;
-  border-color: transparent !important;
-}
+
 
 /* Unidade 3: Diferenciação Área vs Perímetro */
 .grid-cell.area-highlight {

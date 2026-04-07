@@ -232,28 +232,40 @@ h1, h2, h3 {
   gap: 0 !important;
   background: #fff !important;
   box-shadow: 0 0 0 4px #1e3a8a !important;
-  border: none !important;
+  border: none !important; /* Removed outer dashed border to avoid doubling */
   padding: 0 !important;
   border-radius: 0 !important;
 }
 
 .fantasma-board .grid-cell {
-  background: transparent !important;
-  border: 1px dashed rgba(59, 130, 246, 0.4) !important;
+  background: #fff !important;
+  border: 1px dashed transparent !important; /* Reserve the slot */
   box-shadow: none !important;
   cursor: default !important;
-  animation: ghost-blink 2s infinite alternate !important;
+  border-radius: 0 !important;
+  animation: ghost-line-fade 0.7s infinite alternate ease-in-out !important;
 }
 
 .fantasma-board .grid-cell.painted, .fantasma-board .grid-cell.malha-fantasma {
-  background-color: rgba(219, 234, 254, 0.6) !important; /* Light Ghostly Blue */
+  background-color: #fff !important; 
+  box-shadow: none !important;
   transform: none !important;
+  animation: ghost-figure-blink 0.7s infinite alternate ease-in-out !important;
 }
 
-@keyframes ghost-blink {
-  0% { border-color: rgba(59, 130, 246, 0.1); opacity: 0.5; }
-  100% { border-color: rgba(59, 130, 246, 0.6); opacity: 1; }
+@keyframes ghost-line-fade {
+  0% { border-color: rgba(59, 130, 246, 0) !important; }
+  100% { border-color: rgba(59, 130, 246, 0.4) !important; } /* Increased from 0.1 */
 }
+
+@keyframes ghost-figure-blink {
+  0% { border-color: rgba(59, 130, 246, 0) !important; }
+  100% { border-color: rgba(59, 130, 246, 0.9) !important; } /* Much stronger visual */
+}
+
+
+
+
 
 .actions {
   display: flex;
