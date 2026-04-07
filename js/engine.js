@@ -28,6 +28,10 @@ class GameEngine {
       this.sessionCorrect = 0;
       this.sessionErrors = 0;
 
+      // Otimização para evitar re-renderizações desnecessárias
+      this.lastTarget = null;
+      
+      this.challengePhase = 1;
       this.boardEl = document.getElementById('grid-board');
    }
 
@@ -45,14 +49,13 @@ class GameEngine {
          if (!this.currentChallenge) return;
          let type = this.currentChallenge.tipo;
 
-         let needsDrag = ["arrastar_bloco", "arrastar_e_responder", "arrastar_medidas", "ladrilhador_inverso", "problema_natural", "tres_salas", "estimativa"].includes(type);
-         let needsClick = ["pintar_area", "desenhar_quadrado", "desenhar_retangulo", "desenhar_L", "calcular_area_destacada", "clique_rapido", "area_distributiva", "conversao_area", "boss_challenge", "construcao_livre"].includes(type);
+         let needsDrag = ["arrastar_bloco", "arrastar_e_responder", "arrastar_medidas", "ladrilhador_inverso", "problema_natural", "tres_salas", "estimativa", "cirurgia_area", "construcao_livre", "boss_challenge"].includes(type);
+         let needsClick = ["pintar_area", "desenhar_quadrado", "desenhar_retangulo", "desenhar_L", "calcular_area_destacada", "clique_rapido", "area_distributiva", "conversao_area"].includes(type);
 
          if (e.target.classList.contains('grid-cell')) {
             // Prioridade 1: Se a célula já estiver pintada de qualquer cor, desmarcar ao clicar (Togle universal)
-            if (e.target.classList.contains('painted') || e.target.classList.contains('painted-yellow')) {
-               e.target.classList.remove('painted');
-               e.target.classList.remove('painted-yellow');
+            if (e.target.classList.contains('painted') || e.target.classList.contains('painted-yellow') || e.target.classList.contains('painted-blue') || e.target.classList.contains('painted-green') || e.target.classList.contains('painted-orange')) {
+               e.target.classList.remove('painted', 'painted-yellow', 'painted-blue', 'painted-green', 'painted-orange', 'area-highlight', 'border-top-p', 'border-right-p', 'border-bottom-p', 'border-left-p');
                // Atualiza a lista de blocos (se for modo arrasto)
                this.blocksDrawn = this.blocksDrawn.filter(b => !(b.r === parseInt(e.target.dataset.r) && b.c === parseInt(e.target.dataset.c)));
                return; // Interrompe para não disparar o ciclo de cores ou novos arrastos imediatamente
@@ -67,13 +70,22 @@ class GameEngine {
             } else if (needsClick) {
                if (this.level === 5) {
                   // Ciclo de cores para "Cirurgião de Formas" (Decomposição)
-                  if (!e.target.classList.contains('painted') && !e.target.classList.contains('painted-yellow')) {
+                  if (!e.target.classList.contains('painted') && !e.target.classList.contains('painted-yellow') && !e.target.classList.contains('painted-blue') && !e.target.classList.contains('painted-green') && !e.target.classList.contains('painted-orange')) {
                      e.target.classList.add('painted');
                   } else if (e.target.classList.contains('painted')) {
                      e.target.classList.remove('painted');
                      e.target.classList.add('painted-yellow');
-                  } else {
+                  } else if (e.target.classList.contains('painted-yellow')) {
                      e.target.classList.remove('painted-yellow');
+                     e.target.classList.add('painted-blue');
+                  } else if (e.target.classList.contains('painted-blue')) {
+                     e.target.classList.remove('painted-blue');
+                     e.target.classList.add('painted-green');
+                  } else if (e.target.classList.contains('painted-green')) {
+                     e.target.classList.remove('painted-green');
+                     e.target.classList.add('painted-orange');
+                  } else {
+                     e.target.classList.remove('painted-orange');
                   }
                } else {
                   e.target.classList.toggle('painted');
@@ -153,7 +165,7 @@ class GameEngine {
       this.updateLiveStats();
 
       // Auto blink animation on drop (Neuroscience micro-reward)
-      document.querySelectorAll('.painted').forEach(el => {
+      document.querySelectorAll('.painted, .painted-yellow, .painted-blue, .painted-green, .painted-orange').forEach(el => {
          el.classList.add('blink-fast');
          setTimeout(() => el.classList.remove('blink-fast'), 300);
       });
@@ -164,39 +176,48 @@ class GameEngine {
       const board = document.getElementById('grid-board');
       if (!board) return;
 
-      // Clear old highlights
+      const challenge = this.currentChallenge;
+      if (!challenge) return;
+
+      // Detecta o foco da questão baseado no texto da pergunta
+      const isPerimeterRequested = challenge.pergunta.toLowerCase().includes('perímetro') || challenge.targetPerimeter !== undefined;
+      const isAreaRequested = challenge.pergunta.toLowerCase().includes('área') || challenge.targetArea !== undefined;
+
+      // Limpa os destaques antigos
       board.querySelectorAll('.border-top-p, .border-right-p, .border-bottom-p, .border-left-p, .area-highlight').forEach(el => {
          el.classList.remove('border-top-p', 'border-right-p', 'border-bottom-p', 'border-left-p', 'area-highlight');
       });
 
-      const paintedCells = board.querySelectorAll('.painted, .painted-yellow');
-      paintedCells.forEach(cell => cell.classList.add('area-highlight'));
+      const paintedCells = board.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow, .grid-cell.painted-blue, .grid-cell.painted-green, .grid-cell.painted-orange');
+      
+      // Destaque de Área (Preenchimento Sólido)
+      if (isAreaRequested) {
+         paintedCells.forEach(cell => cell.classList.add('area-highlight'));
+      }
 
-      const coords = new Set(Array.from(paintedCells).map(c => `${c.dataset.r},${c.dataset.c}`));
+      // Destaque de Perímetro (Borda Amarela Tracejada)
+      if (isPerimeterRequested) {
+         const coords = new Set(Array.from(paintedCells).map(c => `${c.dataset.r},${c.dataset.c}`));
+         paintedCells.forEach(cell => {
+            const r = parseInt(cell.dataset.r);
+            const c = parseInt(cell.dataset.c);
 
-      paintedCells.forEach(cell => {
-         const r = parseInt(cell.dataset.r);
-         const c = parseInt(cell.dataset.c);
-
-         if (!coords.has(`${r - 1},${c}`)) cell.classList.add('border-top-p');
-         if (!coords.has(`${r + 1},${c}`)) cell.classList.add('border-bottom-p');
-         if (!coords.has(`${r},${c - 1}`)) cell.classList.add('border-left-p');
-         if (!coords.has(`${r},${c + 1}`)) cell.classList.add('border-right-p');
-      });
+            if (!coords.has(`${r - 1},${c}`)) cell.classList.add('border-top-p');
+            if (!coords.has(`${r + 1},${c}`)) cell.classList.add('border-bottom-p');
+            if (!coords.has(`${r},${c - 1}`)) cell.classList.add('border-left-p');
+            if (!coords.has(`${r},${c + 1}`)) cell.classList.add('border-right-p');
+         });
+      }
    }
 
    updateLiveStats() {
+      // Metodo desativado: O estudante deve contar manualmente para evitar distração
       const stats = document.getElementById('live-stats');
-      if (!stats) return;
-
-      const painted = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow').length;
-      const peri = this.calculatePerimeter();
-
-      stats.innerHTML = `<span class="area">Área: ${painted}m²</span> | <span class="peri">Perímetro: ${peri}m</span>`;
+      if (stats) stats.remove();
    }
 
    calculatePerimeter() {
-      const painted = Array.from(document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow'));
+      const painted = Array.from(document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow, .grid-cell.painted-blue, .grid-cell.painted-green, .grid-cell.painted-orange'));
       if (painted.length === 0) return 0;
 
       const coords = new Set(painted.map(c => `${c.dataset.r},${c.dataset.c}`));
@@ -266,6 +287,7 @@ class GameEngine {
       if (!board) return;
 
       // Resets
+      this.challengePhase = 1;
       this.blocksDrawn = [];
       this.tempSelection = [];
       this.hasErrorsThisChallenge = false;
@@ -350,16 +372,9 @@ class GameEngine {
 
       if (title) title.innerText = challenge.pergunta;
 
-      // Live Stats
+      // Live Stats (Desativado conforme solicitação: o estudante deve contar manualmente)
       const existingStats = document.getElementById('live-stats');
       if (existingStats) existingStats.remove();
-      if (challenge.tipo === "construcao_livre" || challenge.tipo === "boss_challenge") {
-         const statsRow = document.createElement('div');
-         statsRow.id = 'live-stats';
-         statsRow.className = 'live-stats';
-         title.parentNode.insertBefore(statsRow, title.nextSibling);
-         this.updateLiveStats();
-      }
 
       // Badge de referência para desafios de conversão de área
       const existingBadge = document.getElementById('unit-badge');
@@ -401,7 +416,7 @@ class GameEngine {
             board.style.backgroundColor = 'transparent';
             board.style.border = 'none';
 
-            if (challenge.tipo === "quiz_multiplo") {
+            if (challenge.tipo === "quiz_multiplo" || challenge.tipo === "quiz_duas_figuras") {
                board.innerHTML = `<h2 style="color:#2e7300; padding: 50px 20px; font-size:1.8rem; text-align:center;">🤔 Questão Rápida!</h2>`;
                 const renderShape = (fig, color) => {
                   let style = `width:${fig.w * 35}px; height:${fig.h * 35}px; background:${color}; border:3px solid var(--border-color); box-shadow: 4px 4px 0 var(--border-color); position:relative; display:grid; grid-template-columns: repeat(${fig.w}, 1fr); grid-template-rows: repeat(${fig.h}, 1fr);`;
@@ -427,13 +442,15 @@ class GameEngine {
                   `;
                 };
 
-                board.innerHTML = `
-                  <div style="display:flex; justify-content:space-around; align-items:center; width:100%; min-height:220px; padding: 20px 0;">
-                     ${renderShape(challenge.figA, '#60a5fa')}
-                     <div style="font-size:1.5rem; font-weight:900; color:#1e3a8a">VS</div>
-                     ${renderShape(challenge.figB, '#facc15')}
-                  </div>
-               `;
+                if (challenge.figA && challenge.figB) {
+                   board.innerHTML = `
+                     <div style="display:flex; justify-content:space-around; align-items:center; width:100%; min-height:220px; padding: 20px 0;">
+                        ${renderShape(challenge.figA, '#60a5fa')}
+                        <div style="font-size:1.5rem; font-weight:900; color:#1e3a8a">VS</div>
+                        ${renderShape(challenge.figB, '#facc15')}
+                     </div>
+                  `;
+                }
              }
          } else {
             board.innerHTML = '';
@@ -446,8 +463,16 @@ class GameEngine {
             board.style.backgroundColor = 'var(--border-color)';
             board.style.border = 'var(--border-width) solid var(--border-color)';
 
-            if (challenge.tipo === "malha_fantasma") board.classList.add('fantasma-board');
+             if (challenge.tipo === "malha_fantasma") board.classList.add('fantasma-board');
             else board.classList.remove('fantasma-board');
+
+            // Verifica se há formas geométricas especiais no desafio
+            const hasGeometricShapes = challenge.prePaintedCoords && challenge.prePaintedCoords.some(coord => 
+               (typeof coord === 'object' && coord.shape)
+            );
+            if (hasGeometricShapes) {
+               board.classList.add('has-shapes');
+            }
 
             for (let r = 0; r < challenge.rows; r++) {
                for (let c = 0; c < challenge.cols; c++) {
@@ -456,21 +481,44 @@ class GameEngine {
                   cell.dataset.r = r;
                   cell.dataset.c = c;
 
-                  if (challenge.prePaintedFull || challenge.tipo === "malha_fantasma") {
-                     cell.classList.add('painted');
-                  } else if (challenge.prePaintedCoords && challenge.prePaintedCoords.some(coord => coord[0] === r && coord[1] === c)) {
-                     cell.classList.add('painted');
-                  } else if (challenge.tipo === "area_distributiva") {
-                     if (challenge.colorSplit.cA !== undefined) {
-                        if (c < challenge.colorSplit.cA) cell.classList.add('painted-blue');
-                        else cell.classList.add('painted-yellow');
-                     } else if (challenge.colorSplit.rA !== undefined) {
-                        if (r < challenge.colorSplit.rA) cell.classList.add('painted-blue');
-                        else cell.classList.add('painted-yellow');
+                  // Função helper para verificar coordenadas
+                  const isPaintedCoord = (coord) => {
+                     if (Array.isArray(coord)) return coord[0] === r && coord[1] === c;
+                     if (typeof coord === 'object' && coord.r !== undefined) return coord.r === r && coord.c === c;
+                     return false;
+                  };
+
+                  // Verifica se há forma geométrica nesta célula
+                  let geometricShape = null;
+                  if (challenge.prePaintedCoords) {
+                     const target = challenge.prePaintedCoords.find(coord => isPaintedCoord(coord));
+                     if (target) {
+                        if (typeof target === 'object' && target.shape) {
+                           geometricShape = target.shape;
+                           cell.classList.add(`cell-${target.shape}`);
+                        } else {
+                           cell.classList.add('painted');
+                        }
                      }
                   }
 
-                  if (challenge.tipo === "malha_fantasma") {
+                  if (challenge.prePaintedFull || challenge.tipo === "malha_fantasma") {
+                     if (!geometricShape) cell.classList.add('painted');
+                  } else if (challenge.prePaintedCoords && !geometricShape && challenge.prePaintedCoords.some(coord => isPaintedCoord(coord))) {
+                     // Já processado acima
+                  } else if (challenge.tipo === "area_distributiva") {
+                     if (!geometricShape) {
+                        if (challenge.colorSplit.cA !== undefined) {
+                           if (c < challenge.colorSplit.cA) cell.classList.add('painted-blue');
+                           else cell.classList.add('painted-yellow');
+                        } else if (challenge.colorSplit.rA !== undefined) {
+                           if (r < challenge.colorSplit.rA) cell.classList.add('painted-blue');
+                           else cell.classList.add('painted-yellow');
+                        }
+                     }
+                  }
+
+                  if (challenge.tipo === "malha_fantasma" && !geometricShape) {
                      cell.classList.add('malha-fantasma');
                   }
                   if (challenge.tipo === "estimativa") {
@@ -486,10 +534,10 @@ class GameEngine {
                         if (r >= 1 && r <= 3 && c >= 1 && c <= 4) cell.classList.add('room-gray');
                      }
 
-                     if (r === 1 && c === 0) cell.classList.add('ref-square-blue'); // blue piece to compare
+                     if (r === 1 && c === 0) cell.classList.add('ref-square-blue');
                   }
 
-                  if (challenge.tipo === "conversao_area") {
+                  if (challenge.tipo === "conversao_area" && !geometricShape) {
                      if (challenge.elementos_visuais) {
                         if (challenge.elementos_visuais.alvo?.shape === 'credit-card') {
                            if (r === 1 && c === 1) {
@@ -499,28 +547,23 @@ class GameEngine {
                               cell.style.display = 'none';
                            }
                         }
-                        if (challenge.prePaintedCoords) {
-                           const target = challenge.prePaintedCoords.find(coord => 
-                              (Array.isArray(coord) && coord[0] === r && coord[1] === c) || 
-                              (coord.r === r && coord.c === c)
-                           );
-                           if (target) {
-                              if (target.shape) cell.classList.add(`cell-${target.shape}`);
-                              else cell.classList.add('painted');
-                           }
-                        }
-                     } else {
-                        if (challenge.prePaintedCoords) {
-                           const target = challenge.prePaintedCoords.find(coord => 
-                              (Array.isArray(coord) && coord[0] === r && coord[1] === c) || 
-                              (coord.r === r && coord.c === c)
-                           );
-                           if (target) {
-                               if (target.shape) cell.classList.add(`cell-${target.shape}`);
-                               else cell.classList.add('painted');
-                           }
-                        }
                      }
+                  }
+
+                  // Renderização de figuras para quiz_duas_figuras (Nível 8)
+                  if (challenge.tipo === "quiz_duas_figuras" || challenge.tipo === "quiz_multiplo") {
+                     const renderShapeFigure = (fig) => {
+                        if (!fig) return '';
+                        const shape = fig.shapeType;
+                        let cellClass = 'grid-cell';
+                        
+                        if (shape === 'triangulo') cellClass += ' cell-triangulo';
+                        else if (shape === 'circulo') cellClass += ' cell-circle';
+                        else if (shape === 'semicirculo') cellClass += ' cell-semic-t';
+                        else if (shape === 'trapezio') cellClass += ' cell-trapezio';
+                        
+                        return cellClass;
+                     };
                   }
 
                   board.appendChild(cell);
@@ -529,33 +572,52 @@ class GameEngine {
          }
       }
 
-      // Dynamic Hint System (After 15s)
+      // Dynamic Hint System (After 15s standard, or 1s for Level 5 Decomposition)
+      const hintDelay = (challenge.decompositionGroups) ? 1000 : 15000;
+
       this.idleTimeout = setTimeout(() => {
          if (!this.hasErrorsThisChallenge) {
-            let hint = document.createElement('div');
-            hint.id = 'hint-display';
-            hint.className = 'hint-text';
-            let hasHint = false;
+            let hint = document.getElementById('hint-display');
+            if (!hint) {
+               hint = document.createElement('div');
+               hint.id = 'hint-display';
+               hint.className = 'hint-text';
+               board.parentNode.insertBefore(hint, inputContainer.nextSibling);
+            }
 
             // Priority: Specific hint from DB
             if (challenge.dica) {
                hint.innerHTML = `💡 Dica: ${challenge.dica}`;
-               hasHint = true;
             } else if (challenge.unidade === 2) {
                hint.innerHTML = `💡 Dica: 1 linha horizontal tem ${challenge.cols || ''} quadrados... pense nisso!`;
-               hasHint = true;
             } else if (challenge.unidade === 3) {
                hint.innerHTML = `💡 Dica: O Perímetro é apenas o contorno por FORA. A Área é a pintura por DENTRO!`;
-               hasHint = true;
             }
-            if (hasHint) board.parentNode.insertBefore(hint, inputContainer.nextSibling);
+
+            // Decomposição Visual (Level 5)
+            if (challenge.decompositionGroups) {
+               const colors = ['painted-blue', 'painted-orange', 'painted-green', 'painted-yellow'];
+               challenge.decompositionGroups.forEach((group, index) => {
+                  const colorClass = colors[index % colors.length];
+                  group.forEach(coord => {
+                     const cell = board.querySelector(`[data-r="${coord[0]}"][data-c="${coord[1]}"]`);
+                     if (cell) {
+                        cell.classList.remove('painted', 'painted-blue', 'painted-yellow', 'painted-green', 'painted-orange');
+                        cell.classList.add(colorClass);
+                        cell.classList.add('blink-fast');
+                        setTimeout(() => cell.classList.remove('blink-fast'), 500);
+                     }
+                  });
+               });
+            }
          }
-      }, 15000);
+      }, hintDelay);
    }
 
    normalizeText(str) {
       if (typeof str !== 'string' && typeof str !== 'number') return "";
-      return str.toString().trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      // Usamos NFKD para converter ² em 2, etc, facilitando a comparação de unidades
+      return str.toString().trim().toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "");
    }
 
    checkAnswer(isTimeUp = false) {
@@ -589,15 +651,20 @@ class GameEngine {
             let val = this.normalizeText(rawVal);
             let tgt = this.normalizeText(tgtInput);
             isCorrect = (val === tgt);
+            
+            // Fallback para comparação direta caso a normalização falhe em algum char especial
+            if (!isCorrect) {
+               isCorrect = (rawVal.toString().trim() === tgtInput.toString().trim());
+            }
          }
       }
       else if (type === "arrastar_bloco") {
-         let painted = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow').length;
+         let painted = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow, .grid-cell.painted-blue, .grid-cell.painted-green, .grid-cell.painted-orange').length;
          isCorrect = (painted === tgtImage);
       }
 
       else if (type === "arrastar_e_responder") {
-         let painted = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow').length;
+         let painted = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow, .grid-cell.painted-blue, .grid-cell.painted-green, .grid-cell.painted-orange').length;
          let areaCorrect = (painted === tgtImage);
 
 
@@ -616,7 +683,7 @@ class GameEngine {
          }
       }
       else if (type === "arrastar_medidas") {
-         let painted = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow').length;
+         let painted = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow, .grid-cell.painted-blue, .grid-cell.painted-green, .grid-cell.painted-orange').length;
          isCorrect = (painted === (ch.target || (ch.cols * ch.rows)) && inputVal === tgtInput);
       }
 
@@ -624,7 +691,9 @@ class GameEngine {
          isCorrect = (inputVal === tgtInput);
       }
       else if (type === "ladrilhador_inverso") {
-         isCorrect = this.blocksDrawn.some(b => b.area === tgtImage);
+         let paintedCells = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow, .grid-cell.painted-blue, .grid-cell.painted-green, .grid-cell.painted-orange');
+         let coords = Array.from(paintedCells).map(c => ({ r: parseInt(c.dataset.r), c: parseInt(c.dataset.c) }));
+         isCorrect = this.validateRectangle(coords, null, null, tgtImage);
       }
       else if (type === "problema_natural") {
          let blockValid = this.blocksDrawn.some(b =>
@@ -637,21 +706,33 @@ class GameEngine {
          isCorrect = (inputVal >= ch.targetRange[0] && inputVal <= ch.targetRange[1]);
       }
       else if (type === "conversao_area") {
-         let painted = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow').length;
+         let painted = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow, .grid-cell.painted-blue, .grid-cell.painted-green, .grid-cell.painted-orange').length;
          let needsDrawing = (ch.targetArea !== undefined);
 
          let areaCorrect = needsDrawing ? (painted === tgtImage) : true;
          isCorrect = areaCorrect && (inputVal === tgtInput);
       }
       else if (type === "construcao_livre") {
-         let area = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow').length;
+         let area = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow, .grid-cell.painted-blue, .grid-cell.painted-green, .grid-cell.painted-orange').length;
          let peri = this.calculatePerimeter();
 
-         let targetP = ch.targetPerimeter !== undefined ? ch.targetPerimeter : ch.targetAnswer;
-         isCorrect = (area === ch.targetArea && peri === targetP);
-         if (ch.targetAnswer !== undefined && inputVal !== null) {
-            isCorrect = isCorrect && (inputVal === ch.targetAnswer);
+         // Validação de Área (Sempre obrigatória)
+         let areaCorrect = (area === ch.targetArea);
+
+         // Validação de Perímetro (Opcional)
+         let periCorrect = true;
+         const targetP = ch.targetPerimeter;
+         if (targetP !== undefined) {
+            periCorrect = (peri === targetP);
          }
+
+         // Validação de Resposta numérica (Opcional - ex: "Qual o perímetro?")
+         let answerCorrect = true;
+         if (ch.targetAnswer !== undefined && typeof ch.targetAnswer === 'number') {
+            answerCorrect = (inputVal === ch.targetAnswer);
+         }
+
+         isCorrect = areaCorrect && periCorrect && answerCorrect;
       }
       else if (type === "tres_salas") {
          if (this.blocksDrawn.length === ch.targetCount) {
@@ -660,8 +741,62 @@ class GameEngine {
             isCorrect = allMatchArea && (uniqueFormats.size === ch.targetCount);
          }
       }
+      else if (type === "cirurgia_area") {
+         if (this.challengePhase === 1) {
+            let block = this.blocksDrawn.find(b => 
+               (b.w === ch.phase1.targetW && b.h === ch.phase1.targetH) || 
+               (b.h === ch.phase1.targetW && b.w === ch.phase1.targetH)
+            );
+            if (block && inputVal === ch.phase1.targetAnswer) {
+               // Success Phase 1
+               this.challengePhase = 2;
+               
+               // Piscar o desenho atual
+               document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow, .grid-cell.painted-blue, .grid-cell.painted-green, .grid-cell.painted-orange').forEach(el => {
+                   el.classList.add('blink-fast');
+                   setTimeout(() => el.classList.remove('blink-fast'), 1000);
+               });
+
+               // Efeito de Ampliação
+               setTimeout(() => {
+                  const extraW = ch.phase2.extraW || 0;
+                  const extraH = ch.phase2.extraH || 0;
+                  
+                  for (let r = block.r; r < block.r + block.h + extraH; r++) {
+                     for (let c = block.c; c < block.c + block.w + extraW; c++) {
+                        const cell = this.boardEl.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+                        if (cell && !cell.classList.contains('painted-orange')) {
+                           cell.classList.add('painted-orange');
+                           cell.classList.add('blink-fast');
+                           setTimeout(() => cell.classList.remove('blink-fast'), 500);
+                        }
+                     }
+                  }
+                  
+                  // Atualiza a pergunta e limpa input
+                  const title = document.getElementById('question-title');
+                  if (title) title.innerText = ch.phase2.pergunta;
+                  const input = document.getElementById('answer-input');
+                  if (input) {
+                     input.value = '';
+                     input.focus();
+                  }
+                  this.updateLiveStats();
+                  if (navigator.vibrate) navigator.vibrate(50);
+               }, 1200);
+               
+               this.isProcessing = false; // Permite o próximo clique no botão Confirmar
+               return; 
+            } else {
+               isCorrect = false;
+            }
+         } else {
+            // Fase 2: Apenas valida a área final
+            isCorrect = (inputVal === ch.phase2.targetAnswer);
+         }
+      }
       else if (type === "boss_challenge") {
-         let area = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow').length;
+         let area = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow, .grid-cell.painted-blue, .grid-cell.painted-green, .grid-cell.painted-orange').length;
          let needsInput = (tgtInput !== undefined && inputVal !== null);
          let areaCorrect = (area === (ch.targetArea || ch.target));
          let inputCorrect = needsInput ? (inputVal === tgtInput) : true;
@@ -683,11 +818,30 @@ class GameEngine {
    }
 
    // Fallback validadores
-   validateRectangle(coords, w, h) {
-      if (!coords || coords.length === 0 || coords.length !== w * h) return false;
+   validateRectangle(coords, w, h, targetArea) {
+      if (!coords || coords.length === 0) return false;
+      const totalBlocks = coords.length;
+
+      // Se passou targetArea, a contagem de blocos deve bater
+      if (targetArea !== undefined && targetArea !== null && totalBlocks !== targetArea) return false;
+      // Se não passou targetArea, deve bater com w * h
+      if ((targetArea === undefined || targetArea === null) && totalBlocks !== w * h) return false;
+
       let minR = Math.min(...coords.map(c => c.r)), maxR = Math.max(...coords.map(c => c.r));
+      let maxR_val = Math.max(...coords.map(c => c.r));
       let minC = Math.min(...coords.map(c => c.c)), maxC = Math.max(...coords.map(c => c.c));
-      return ((maxR - minR + 1) === h && (maxC - minC + 1) === w) || ((maxR - minR + 1) === w && (maxC - minC + 1) === h);
+
+      let rectH = maxR - minR + 1;
+      let rectW = maxC - minC + 1;
+
+      // Verifica se é um retângulo sólido (sem buracos)
+      if (rectH * rectW !== totalBlocks) return false;
+
+      // Se só validamos a área, já está correto
+      if (targetArea !== undefined && targetArea !== null) return true;
+
+      // Valida dimensões específicas (aceita rotação)
+      return (rectW === w && rectH === h) || (rectW === h && rectH === w);
    }
 
    validateLShape(coords, targetBlocks) {
@@ -710,15 +864,22 @@ class GameEngine {
          clearInterval(this.globalTimerInterval);
 
          let p = 4;
-         if (this.challengeSeconds <= 10) p = 10;
-         else if (this.challengeSeconds <= 20) p = 8;
-         else if (this.challengeSeconds <= 30) p = 6;
+         
+         if (this.currentChallenge.tipo === "cirurgia_area") {
+            if (this.challengeSeconds <= 15) p = 15; 
+            else if (this.challengeSeconds <= 30) p = 10;
+            else p = 5;
+         } else {
+            if (this.challengeSeconds <= 10) p = 10;
+            else if (this.challengeSeconds <= 20) p = 8;
+            else if (this.challengeSeconds <= 30) p = 6;
+         }
 
          // Reduz bônus se o tempo acabou
          if (isBonusLost) p = Math.max(1, Math.round(p / 2));
 
          if (this.currentChallenge.tipo === "clique_rapido" && !isBonusLost) {
-            p += 5; // Bônus Rápido Extra apenas se dentro do tempo!
+            p += 5; // Bônus Rápido Extra
          }
 
          this.sessionPoints += p;
@@ -800,7 +961,7 @@ class GameEngine {
             overlay.style.display = 'none';
             this.isProcessing = false;
             this.loadNextChallenge();
-         }, 5000); // 5 segundos para leitura
+         }, 3000); // 3 segundos para leitura
       }
    }
 
@@ -830,10 +991,17 @@ class GameEngine {
       const newStars = Math.max(prevStars, starsCount); // Guarda o melhor resultado
       localStorage.setItem(`geomaster_stars_N${this.level}`, newStars);
 
-      const currentUnlocked = parseInt(localStorage.getItem('geomaster_unlocked_level')) || 1;
-      if (this.level >= currentUnlocked) {
-         localStorage.setItem('geomaster_unlocked_level', this.level + 1);
-      }
+       const currentUnlocked = parseInt(localStorage.getItem('geomaster_unlocked_level')) || 1;
+       
+       // Verifica se é o último nível (Nível 8 - Final do Jogo)
+       if (this.level === 8) {
+          this.showGameCompleteScreen();
+          return;
+       }
+       
+       if (this.level >= currentUnlocked) {
+          localStorage.setItem('geomaster_unlocked_level', this.level + 1);
+       }
 
       let starsHtml = `<div style="display:flex; justify-content:center; gap:8px; margin-bottom:15px;">`;
       for (let i = 1; i <= 3; i++) {
@@ -880,11 +1048,99 @@ class GameEngine {
       </div>
     `;
 
-      if (navigator.vibrate) navigator.vibrate([100, 100, 100, 100]);
-      this.playSound(800, 'sine');
-   }
+       if (navigator.vibrate) navigator.vibrate([100, 100, 100, 100]);
+       this.playSound(800, 'sine');
+    }
 
-   playSound(freq, type) {
+    showGameCompleteScreen() {
+       clearInterval(this.globalTimerInterval);
+       
+       const overlayOrig = document.getElementById('feedback-overlay');
+       if (overlayOrig) overlayOrig.style.display = 'none';
+
+       let summaryScreen = document.getElementById('summary-screen');
+       if (!summaryScreen) {
+          summaryScreen = document.createElement('div');
+          summaryScreen.id = 'summary-screen';
+          summaryScreen.className = 'summary-screen';
+          document.body.appendChild(summaryScreen);
+       }
+
+       const avgTime = (this.sessionTotalTime / this.totalToPlay).toFixed(1);
+       const accuracy = Math.round((this.sessionCorrect / this.totalToPlay) * 100);
+
+       let starsCount = 1;
+       if (this.sessionErrors === 0) starsCount = 3;
+       else if (this.sessionErrors === 1) starsCount = 2;
+
+       localStorage.setItem(`geomaster_stars_N8`, starsCount);
+
+       let starsHtml = `<div style="display:flex; justify-content:center; gap:8px; margin-bottom:20px;">`;
+       for (let i = 1; i <= 3; i++) {
+          let c = i <= starsCount ? "#facc15" : "#e5e7eb";
+          let p = i <= starsCount ? "drop-shadow(2px 2px 0px #000)" : "";
+          let fill = i <= starsCount ? 1 : 0;
+          starsHtml += `<span class="material-symbols-outlined" style="color:${c}; font-size:4rem; filter:${p}; font-variation-settings: 'FILL' ${fill};">star</span>`;
+       }
+       starsHtml += `</div>`;
+
+       summaryScreen.style.display = 'flex';
+       summaryScreen.style.flexDirection = 'column';
+       summaryScreen.style.alignItems = 'center';
+       summaryScreen.style.justifyContent = 'center';
+       summaryScreen.style.minHeight = '100vh';
+       summaryScreen.style.boxSizing = 'border-box';
+       summaryScreen.style.overflow = 'auto';
+       summaryScreen.className = 'fixed inset-0 z-[10000] bg-gradient-to-br from-[#1e3a8a] to-[#3b82f6] flex flex-col items-center justify-center p-2 text-center';
+       
+       const containerWidth = window.innerWidth > 600 ? '400px' : '90vw';
+       
+       summaryScreen.innerHTML = `
+       <div class="bg-white rounded-2xl p-4 border-b-4 border-r-4 border-[#383830] shadow-[0_12px_24px_rgba(0,0,0,0.3)]" style="width: ${containerWidth}; margin: 8px auto; max-height: 90vh; overflow-y: auto;">
+         <div class="w-full h-2 bg-gradient-to-r from-[#facc15] via-[#fbbf24] to-[#f59e0b]" style="margin-bottom: 10px; border-radius: 2px;"></div>
+         
+         <div style="font-size: 2.5rem; margin-bottom: 8px;">🏆</div>
+         <h1 style="font-size: 1.5rem; font-weight: 900; color: #1e3a8a; margin-bottom: 8px; font-family: 'Plus Jakarta Sans', sans-serif;">PARABÉNS!</h1>
+         <p style="font-size: 0.9rem; font-weight: 700; color: #3b82f6; margin-bottom: 6px;">Você dominou as habilidades de área!</p>
+         <p style="color: #64748b; font-size: 0.75rem; margin-bottom: 12px;">Todas as formas geométricas não têm mais segredos para você.</p>
+         
+         ${starsHtml}
+         
+         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
+           <div style="background: #84fb42; border: 2px solid #383830; padding: 8px; border-radius: 12px; box-shadow: 2px 2px 0 #383830;">
+              <span style="display: block; font-size: 1.25rem; font-weight: 900;">💎 ${this.sessionPoints}</span>
+              <span style="font-size: 0.5rem; font-weight: 700; text-transform: uppercase; opacity: 0.7;">Diamantes</span>
+           </div>
+           <div style="background: #a3d8ff; border: 2px solid #383830; padding: 8px; border-radius: 12px; box-shadow: 2px 2px 0 #383830;">
+              <span style="display: block; font-size: 1.25rem; font-weight: 900;">${accuracy}%</span>
+              <span style="font-size: 0.5rem; font-weight: 700; text-transform: uppercase; opacity: 0.7;">Precisão</span>
+           </div>
+           <div style="background: #f0f8ff; border: 2px solid #383830; padding: 8px; border-radius: 12px; box-shadow: 2px 2px 0 #383830;">
+              <span style="display: block; font-size: 1.25rem; font-weight: 900;">${avgTime}s</span>
+              <span style="font-size: 0.5rem; font-weight: 700; text-transform: uppercase; opacity: 0.7;">Média</span>
+           </div>
+           <div style="background: #ff9810; border: 2px solid #383830; padding: 8px; border-radius: 12px; box-shadow: 2px 2px 0 #383830;">
+              <span style="display: block; font-size: 1.25rem; font-weight: 900;">${this.sessionFastest === Infinity ? 0 : this.sessionFastest}s</span>
+              <span style="font-size: 0.5rem; font-weight: 700; text-transform: uppercase; opacity: 0.7;">Recorde</span>
+           </div>
+         </div>
+
+         <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button style="width: 100%; background: #1e3a8a; color: white; font-weight: 900; padding: 14px; border-radius: 10px; font-size: 0.9rem; box-shadow: 0 3px 0 #1e3a8a; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="window.location.reload()">
+               <span style="font-size: 1rem;">🔄</span> JOGAR NOVAMENTE
+            </button>
+            <button style="width: 100%; background: #facc15; color: #1e3a8a; font-weight: 900; padding: 14px; border-radius: 10px; font-size: 0.9rem; box-shadow: 0 3px 0 #d97706; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="window.location.href='index.html'">
+               <span style="font-size: 1rem;">🏠</span> VOLTAR AO INÍCIO
+            </button>
+         </div>
+        </div>
+      `;
+
+       if (navigator.vibrate) navigator.vibrate([100, 100, 100, 100]);
+       this.playSound(800, 'sine');
+    }
+
+    playSound(freq, type) {
       try {
          const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
          const oscillator = audioCtx.createOscillator();

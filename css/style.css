@@ -393,6 +393,8 @@ h1, h2, h3 {
 }
 .grid-cell.painted-blue { background-color: #60a5fa; border: 1px solid #000; }
 .grid-cell.painted-yellow { background-color: #facc15; border: 1px solid #000; }
+.grid-cell.painted-green { background-color: #4ade80; border: 1px solid #000; }
+.grid-cell.painted-orange { background-color: #fb923c; border: 1px solid #000; }
 
 .fantasma-board {
   background-color: #fff !important;
@@ -445,6 +447,94 @@ h1, h2, h3 {
   background-color: #3b82f6 !important;
   border: 2px solid #000 !important;
   box-shadow: 2px 2px 0px #000;
+}
+
+/* Formas Geométricas Nível 8 - Compatível com data.js */
+/* círculo */
+.cell-circle,
+.cell-circulo {
+  border-radius: 50% !important;
+  background-color: var(--primary-color) !important;
+  border: 2px solid #1e3a8a !important;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.2) !important;
+}
+
+/* semicírculo */
+.cell-semic-t,
+.cell-semicirculo-top {
+  border-radius: 100% 100% 0 0 / 200% 200% 0 0 !important;
+  background-color: var(--primary-color) !important;
+  border: 2px solid #1e3a8a !important;
+}
+
+.cell-semic-b,
+.cell-semicirculo-bottom {
+  border-radius: 0 0 100% 100% / 0 0 200% 200% !important;
+  background-color: var(--primary-color) !important;
+  border: 2px solid #1e3a8a !important;
+}
+
+.cell-semic-l {
+  border-radius: 100% 0 0 100% / 50% 0 0 50% !important;
+  background-color: var(--primary-color) !important;
+  border: 2px solid #1e3a8a !important;
+}
+
+.cell-semic-r {
+  border-radius: 0 100% 100% 0 / 0 50% 50% 0 !important;
+  background-color: var(--primary-color) !important;
+  border: 2px solid #1e3a8a !important;
+}
+
+/* Triângulos */
+.cell-triangulo {
+  clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+  background-color: var(--primary-color) !important;
+  border: 2px solid #1e3a8a !important;
+}
+
+.cell-tri-tl {
+  background: linear-gradient(135deg, var(--primary-color) 50%, transparent 50%) !important;
+  border: none !important;
+}
+
+.cell-tri-tr {
+  background: linear-gradient(225deg, var(--primary-color) 50%, transparent 50%) !important;
+  border: none !important;
+}
+
+.cell-tri-bl {
+  background: linear-gradient(45deg, var(--primary-color) 50%, transparent 50%) !important;
+  border: none !important;
+}
+
+.cell-tri-br {
+  background: linear-gradient(315deg, var(--primary-color) 50%, transparent 50%) !important;
+  border: none !important;
+}
+
+/* Trapézio */
+.cell-trapezio {
+  clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+  background-color: var(--primary-color) !important;
+  border: 2px solid #1e3a8a !important;
+}
+
+/* Animação para formas geométricas */
+.cell-circle.painted,
+.cell-triangulo.painted,
+.cell-trapezio.painted,
+.cell-semic-t.painted,
+.cell-semic-b.painted,
+.cell-semic-l.painted,
+.cell-semic-r.painted {
+  box-shadow: 0 4px 0 #1e40af, inset 0 -2px 0 rgba(0,0,0,0.1);
+  transform: scale(1.05);
+}
+
+/* Grid com formas geométricas precisa de ajustes */
+.grid-board.has-shapes .grid-cell {
+  z-index: 1;
 }
 
 .perimeter-rope {

@@ -117,19 +117,19 @@ const level3Challenges = [
   { "id": "N3_D6", "unidade": 3, "tipo": "quiz_multiplo", "pergunta": "Para medir a área de uma Floresta Amazônica completa, usamos:", "targetAnswer": "km²", "inputType": "options", "inputOptions": ["m²", "km²", "cm²"], "dica": "Florestas são áreas extensas, use a maior unidade." },
   { "id": "N3_D7", "unidade": 3, "tipo": "quiz_duas_figuras", "pergunta": "Com 12m de cerca, qual formato garante MAIS ÁREA INTERNA?", "figA": { "w": 1, "h": 5, "label": "Retângulo 1x5" }, "figB": { "w": 3, "h": 3, "label": "Quadrado 3x3" }, "targetAnswer": "Quadrado 3x3", "inputType": "options", "inputOptions": ["Retângulo 1x5", "Quadrado 3x3"], "dica": "Calcule a área de cada um (base x altura) e compare." },
   { "id": "N3_D8", "unidade": 3, "tipo": "conversao_area", "pergunta": "Este cartão cobre vários quadrados mágicos. Use a legenda para calcular a área total do cartão:", "targetAnswer": 45, "inputType": "number", "cols": 6, "rows": 5, "prePaintedCoords": [[1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [3, 1], [3, 2], [3, 3], [3, 4], [3, 5]], "elementos_visuais": { "referencia": { "label": "1 quadrado = 3cm²" } }, "dica": "Conte os quadrados ocupados e use o valor unitário da legenda para descobrir o total." },
-  { "id": "N3_D9", "unidade": 3, "tipo": "construcao_livre", "pergunta": "Use 16m de perímetro (borda amarela) para criar a maior área possível.", "targetArea": 16, "targetPerimeter": 16, "cols": 6, "rows": 6, "dica": "Tente formar um quadrado 4x4." },
+  { "id": "N3_D9", "unidade": 3, "tipo": "construcao_livre", "pergunta": "Construa um retângulo com perímetro igual a 16(borda amarela) com a maior área possível.", "targetArea": 16, "targetPerimeter": 16, "cols": 6, "rows": 6, "dica": "Tente formar um quadrado 4x4." },
   { "id": "N3_D10", "unidade": 3, "tipo": "quiz_multiplo", "pergunta": "O tamanho de um Chip de Celular (SIM Card) é cerca de 2...?", "targetAnswer": "cm²", "inputType": "options", "inputOptions": ["m²", "km²", "cm²"] },
 
   // --- ÁREA VS PERÍMETRO (N3_D11 a N3_D20) ---
   { "id": "N3_D11", "unidade": 3, "tipo": "quiz_duas_figuras", "pergunta": "Ambas têm contorno 12. Qual delas possui MENOS espaço interno?", "figA": { "w": 3, "h": 3, "label": "Quadrado" }, "figB": { "w": 5, "h": 1, "label": "Retângulo" }, "targetAnswer": "Figura B", "inputType": "options", "inputOptions": ["Figura A", "Figura B"], "dica": "Calcule a área interna de cada uma e compare os resultados." },
   { "id": "N3_D12", "unidade": 3, "tipo": "arrastar_e_responder", "pergunta": "Desenhe um retângulo 5x2. Qual o PERÍMETRO (soma de todos os lados)?", "targetArea": 10, "targetAnswer": 14, "inputType": "number", "cols": 7, "rows": 4, "dica": "O perímetro é a medida total do contorno da figura." },
   { "id": "N3_D13", "unidade": 3, "tipo": "clique_rapido", "pergunta": "Um quadrado de lado 3. Digite rápido a ÁREA dele!", "target": 9, "timeLimit": 10, "cols": 5, "rows": 5, "prePaintedCoords": [[1, 1], [1, 2], [1, 3], [2, 1], [2, 2], [2, 3], [3, 1], [3, 2], [3, 3]] },
-  { "id": "N3_D14", "unidade": 3, "tipo": "clique_rapido", "pergunta": "O mesmo quadrado de lado 3. Digite agora o PERÍMETRO!", "target": 12, "timeLimit": 10, "cols": 5, "rows": 5, "prePaintedCoords": [[1, 1], [1, 2], [1, 3], [2, 1], [2, 2], [2, 3], [3, 1], [3, 2], [3, 3]] },
+  { "id": "N3_D14", "unidade": 3, "tipo": "clique_rapido", "pergunta": "Considere um quadrado de lado 3. Digite agora o PERÍMETRO!", "target": 12, "timeLimit": 10, "cols": 5, "rows": 5, "prePaintedCoords": [[1, 1], [1, 2], [1, 3], [2, 1], [2, 2], [2, 3], [3, 1], [3, 2], [3, 3]] },
   { "id": "N3_D15", "unidade": 3, "tipo": "quiz_duas_figuras", "pergunta": "Um Quadrado e uma Linha. Ambos têm área 4. O Perímetro é igual?", "figA": { "w": 2, "h": 2, "label": "Quadrado" }, "figB": { "w": 4, "h": 1, "label": "Linha" }, "targetAnswer": "Não, o da Linha é maior", "inputType": "options", "inputOptions": ["Sim, são iguais", "Não, o da Linha é maior"], "dica": "Conte o contorno de cada um; figuras esticadas costumam ter perímetros maiores." },
-  { "id": "N3_D16", "unidade": 3, "tipo": "construcao_livre", "pergunta": "Crie uma figura de área 6 que gaste o MENOR contorno possível.", "targetArea": 6, "targetPerimeter": 10, "cols": 5, "rows": 5, "dica": "Tente deixar a figura o mais 'quadrada' possível para economizar contorno." },
+  { "id": "N3_D16", "unidade": 3, "tipo": "construcao_livre", "pergunta": "Crie uma figura de área 6 com o MENOR contorno possível.", "targetArea": 6, "targetPerimeter": 10, "cols": 5, "rows": 5, "dica": "Tente deixar a figura o mais 'quadrada' possível para economizar contorno." },
   { "id": "N3_D17", "unidade": 3, "tipo": "arrastar_e_responder", "pergunta": "Desenhe um quadrado de lado 5. Qual a área total?", "targetArea": 25, "targetAnswer": 25, "inputType": "number", "cols": 6, "rows": 6 },
   { "id": "N3_D18", "unidade": 3, "tipo": "quiz_duas_figuras", "pergunta": "Quem vence? Um retângulo 4x3 ou um quadrado 4x4 em PERÍMETRO?", "figA": { "w": 4, "h": 3, "label": "Retângulo 4x3" }, "figB": { "w": 4, "h": 4, "label": "Quadrado 4x4" }, "targetAnswer": "Quadrado 4x4", "inputType": "options", "inputOptions": ["Retângulo 4x3", "Quadrado 4x4"] },
-  { "id": "N3_D19", "unidade": 3, "tipo": "construcao_livre", "pergunta": "Use 10m de perímetro para cercar uma área de 6m².", "targetArea": 6, "targetPerimeter": 10, "cols": 5, "rows": 5, "dica": "Um retângulo 3x2 resolve esse mistério!" },
+  { "id": "N3_D19", "unidade": 3, "tipo": "construcao_livre", "pergunta": "Construa uma forma com 10m de perímetro e área de 6m² (cada bloco equivale a 1m²).", "targetArea": 6, "targetPerimeter": 10, "cols": 5, "rows": 5, "dica": "Um retângulo 3x2 resolve esse mistério!" },
   { "id": "N3_D20", "unidade": 3, "tipo": "clique_rapido", "pergunta": "Retângulo 10x1. Qual o Perímetro?", "target": 22, "timeLimit": 12, "cols": 10, "rows": 1, "prePaintedFull": true },
 
   // --- UNIDADES DE MEDIDA E CONVERSÃO (N3_D21 a N3_D30) ---
@@ -161,22 +161,22 @@ const level3Challenges = [
 const level4Challenges = [
   { "id": "N4_D1", "unidade": 3, "tipo": "conversao_area", "pergunta": "Expansão Geométrica: Se dobrarmos os lados de um quadrado de 1m², qual será sua nova área?", "targetAnswer": 4, "inputType": "number", "cols": 4, "rows": 4, "prePaintedCoords": [[1, 1]], "dica": "Tente desenhar o novo formato no grid para ver quantos blocos ele agora ocupa." },
   { "id": "N4_D2", "unidade": 3, "tipo": "quiz_multiplo", "pergunta": "Um retângulo tem área 20m² e um de seus lados mede 5m. Quanto mede o outro lado?", "targetAnswer": "4m", "inputType": "options", "inputOptions": ["4m", "5m", "15m"], "dica": "Pense em qual número multiplicado por 5 resulta no total de 20." },
-  { "id": "N4_D3", "unidade": 3, "tipo": "construcao_livre", "pergunta": "Desafio do Arquiteto: Desenhe um retângulo que tenha área 12 e contorno (perímetro) 14.", "targetArea": 12, "targetPerimeter": 14, "cols": 6, "rows": 6, "dica": "Existem formas diferentes com área 12; teste qual delas possui a borda externa no tamanho 14." },
-  { "id": "N4_D4", "unidade": 3, "tipo": "conversao_area", "pergunta": "O Terreno: Um lote retangular tem 10m de base por 5m de altura. Qual sua área total?", "targetAnswer": 50, "inputType": "number", "cols": 10, "rows": 5, "prePaintedCoords": [[0, 0]], "dica": "Utilize a lógica da multiplicação das dimensões para o preenchimento total." },
+  { "id": "N4_D3", "unidade": 3, "tipo": "construcao_livre", "pergunta": "Desafio do Arquiteto: Desenhe um retângulo que tenha área 12 e contorno (perímetro) 14.", "targetArea": 12, "targetPerimeter": 14, "cols": 6, "rows": 6, "dica": "Existem formas diferentes com área 12; teste qual delas possui a borda externa no tamanho 14 (Retângulo 3x4)." },
+  { "id": "N4_D4", "unidade": 3, "tipo": "arrastar_e_responder", "pergunta": "O Terreno: Um lote retangular tem 10m de base por 5m de altura. Desenhe o lote no grid e calcule sua área total:", "targetArea": 50, "targetAnswer": 50, "targetW": 10, "targetH": 5, "inputType": "number", "cols": 11, "rows": 6, "dica": "Arraste para desenhar o retângulo 10x5 e multiplique as medidas." },
   { "id": "N4_D5", "unidade": 3, "tipo": "quiz_multiplo", "pergunta": "Se um quadrado tem perímetro de 12m, qual é sua área interna?", "targetAnswer": "9m²", "inputType": "options", "inputOptions": ["12m²", "9m²", "16m²"], "dica": "O perímetro é a soma de quatro lados iguais. Descubra o valor de um lado primeiro." },
-  { "id": "N4_D6", "unidade": 3, "tipo": "construcao_livre", "pergunta": "Desenhe duas figuras diferentes que tenham 8 unidades de área cada.", "targetArea": 8, "cols": 8, "rows": 8, "dica": "Podem ser retângulos 2x4 ou formas irregulares!" },
-  { "id": "N4_D7", "unidade": 3, "tipo": "conversao_area", "pergunta": "Um tile de cerâmica mede 10cm x 10cm (100cm²). Quantos tiles preciso para cobrir 1000cm²?", "targetAnswer": 10, "inputType": "number", "cols": 5, "rows": 2, "dica": "Divida a área total pela área de um tile." },
+  { "id": "N4_D6", "unidade": 3, "tipo": "tres_salas", "pergunta": "Desenhe duas figuras diferentes que tenham 8 unidades de área cada.", "targetArea": 8, "targetCount": 2, "cols": 12, "rows": 8, "dica": "Arraste dois blocos de 8. Eles devem ter formatos diferentes (ex: 2x4 e 1x8)!" },
+  { "id": "N4_D7", "unidade": 3, "tipo": "conversao_area", "pergunta": "Uma cerâmica mede 10cm x 10cm (100cm²). Quantas cerâmicas preciso para cobrir 1000cm²?", "targetAnswer": 10, "inputType": "number", "cols": 5, "rows": 2, "dica": "Divida a área total pela área de uma cerâmica." },
   { "id": "N4_D8", "unidade": 3, "tipo": "quiz_multiplo", "pergunta": "Qual figura tem maior área: um quadrado de lado 4m ou um retângulo de 5m x 3m?", "targetAnswer": "Quadrado", "inputType": "options", "inputOptions": ["Quadrado", "Retângulo", "São iguais"] },
-  { "id": "N4_D9", "unidade": 3, "tipo": "construcao_livre", "pergunta": "Desenhe um quadrado de área 1 e um retângulo de área 4 ao lado.", "targetArea": 5, "cols": 6, "rows": 4, "dica": "Pinte 1 bloco e depois um bloco 4x1 ou 2x2." },
+  { "id": "N4_D9", "unidade": 3, "tipo": "construcao_livre", "pergunta": "Desenhe um quadrado de área 1 e um retângulo de área 4 ao lado.", "targetArea": 5, "cols": 6, "rows": 4, "dica": "Pinte 1 bloco e depois um bloco 4x1 ou 2x2. No total, você terá 5 blocos pintados." },
   { "id": "N4_D10", "unidade": 3, "tipo": "boss_challenge", "pergunta": "🔥 BOSS CHALLENGE: Construa um retângulo de 10m² e calcule seu perímetro total.", "targetArea": 10, "targetAnswer": 14, "cols": 10, "rows": 5, "dica": "Após desenhar a figura, conte cada segmento de reta que forma o contorno externo." }
 ];
 
 // --- NÍVEL 5 (Unidade 4: Cirurgião de Formas - Decomposição) ---
 const level5Challenges = [
   // Tipo 1: O L em Fatias (Decomposição Simples)
-  { "id": "N5_D1", "unidade": 4, "tipo": "conversao_area", "pergunta": "Qual a área deste 'L' vertical? Use o fatiamento para ajudar no cálculo.", "targetAnswer": 8, "inputType": "number", "cols": 10, "rows": 8, "prePaintedCoords": [[1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [6, 2], [5, 2]], "dica": "Tente dividir a figura em dois retângulos menores que você já sabe calcular a área." },
-  { "id": "N5_D2", "unidade": 4, "tipo": "conversao_area", "pergunta": "Qual a área deste 'L' horizontal?", "targetAnswer": 12, "inputType": "number", "cols": 10, "rows": 8, "prePaintedCoords": [[1, 1], [1, 2], [2, 1], [2, 2], [3, 1], [3, 2], [4, 1], [4, 2], [4, 3], [4, 4], [3, 3], [3, 4]], "dica": "Decomponha a forma em partes mais simples e some as áreas." },
-  { "id": "N5_D3", "unidade": 4, "tipo": "conversao_area", "pergunta": "Qual a área deste 'L' invertido?", "targetAnswer": 16, "inputType": "number", "cols": 10, "rows": 8, "prePaintedCoords": [[1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [3, 1], [3, 2], [4, 1], [4, 2], [5, 1], [5, 2]], "dica": "Dividir para conquistar: que retângulos se escondem nesta figura?" },
+  { "id": "N5_D1", "unidade": 4, "tipo": "conversao_area", "pergunta": "Qual a área deste 'L'?", "targetAnswer": 8, "inputType": "number", "cols": 10, "rows": 8, "prePaintedCoords": [[1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [6, 2], [5, 2]], "dica": "Dividir para conquistar: some as áreas", "decompositionGroups": [[[1, 1], [2, 1], [3, 1], [4, 1]], [[5, 1], [6, 1], [5, 2], [6, 2]]] },
+  { "id": "N5_D2", "unidade": 4, "tipo": "conversao_area", "pergunta": "Qual a área deste 'L'?", "targetAnswer": 12, "inputType": "number", "cols": 10, "rows": 8, "prePaintedCoords": [[1, 1], [1, 2], [2, 1], [2, 2], [3, 1], [3, 2], [4, 1], [4, 2], [4, 3], [4, 4], [3, 3], [3, 4]], "dica": "Dividir para conquistar: some as áreas", "decompositionGroups": [[[1, 1], [1, 2], [2, 1], [2, 2], [3, 1], [3, 2], [4, 1], [4, 2]], [[4, 3], [4, 4], [3, 3], [3, 4]]] },
+  { "id": "N5_D3", "unidade": 4, "tipo": "conversao_area", "pergunta": "Qual a área deste 'L'?", "targetAnswer": 16, "inputType": "number", "cols": 10, "rows": 8, "prePaintedCoords": [[1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [3, 1], [3, 2], [4, 1], [4, 2], [5, 1], [5, 2]], "dica": "Dividir para conquistar: some as áreas", "decompositionGroups": [[[1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5]], [[3, 1], [3, 2], [4, 1], [4, 2], [5, 1], [5, 2]]] },
 
   // Tipo 2: O Moldura (Subtração de Áreas)
   { "id": "N5_D4", "unidade": 4, "tipo": "conversao_area", "pergunta": "Qual a área total desta moldura de 6x6 com um buraco central de 2x2?", "targetAnswer": 32, "inputType": "number", "cols": 8, "rows": 8, "prePaintedCoords": [[1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [3, 1], [3, 2], [3, 5], [3, 6], [4, 1], [4, 2], [4, 5], [4, 6], [5, 1], [5, 2], [5, 3], [5, 4], [5, 5], [5, 6], [6, 1], [6, 2], [6, 3], [6, 4], [6, 5], [6, 6]], "dica": "Pense no retângulo de fora e retire a área do buraco de dentro." },
@@ -184,9 +184,33 @@ const level5Challenges = [
   { "id": "N5_D6", "unidade": 4, "tipo": "conversao_area", "pergunta": "Qual a área de um retângulo 10x10 com um buraco de 6x6 no meio?", "targetAnswer": 64, "inputType": "number", "cols": 12, "rows": 12, "prePaintedCoords": [[1, 1], [1, 2], [1, 3], [1, 4], [1, 5], [1, 6], [1, 7], [1, 8], [1, 9], [1, 10], [2, 1], [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7], [2, 8], [2, 9], [2, 10], [3, 1], [3, 2], [3, 9], [3, 10], [4, 1], [4, 2], [4, 9], [4, 10], [5, 1], [5, 2], [5, 9], [5, 10], [6, 1], [6, 2], [6, 9], [6, 10], [7, 1], [7, 2], [7, 9], [7, 10], [8, 1], [8, 2], [8, 9], [8, 10], [9, 1], [9, 2], [9, 3], [9, 4], [9, 5], [9, 6], [9, 7], [9, 8], [9, 9], [9, 10], [10, 1], [10, 2], [10, 3], [10, 4], [10, 5], [10, 6], [10, 7], [10, 8], [10, 9], [10, 10]], "dica": "Subtraia a área interna da área externa." },
 
   // Tipo 3: Cirurgia de Expansão (Modificação)
-  { "id": "N5_D7", "unidade": 4, "tipo": "construcao_livre", "pergunta": "Desenhe um retângulo 3x4. Agora, dobre sua largura mas mantenha a altura. Qual a nova área?", "targetArea": 24, "targetAnswer": 24, "inputType": "number", "cols": 8, "rows": 6, "dica": "Como as dimensões mudaram? Calcule a nova área multiplicando-as." },
-  { "id": "N5_D8", "unidade": 4, "tipo": "construcao_livre", "pergunta": "Desenhe um quadrado de lado 4. Aumente sua altura em 2 blocos. Qual a nova área?", "targetArea": 24, "targetAnswer": 24, "inputType": "number", "cols": 6, "rows": 8, "dica": "Base e altura agora são diferentes. Qual o novo resultado da multiplicação?" },
-  { "id": "N5_D9", "unidade": 4, "tipo": "construcao_livre", "pergunta": "Desenhe um retângulo 2x5. Triplique a área total criando um novo retângulo livre. Qual a área alvo?", "targetArea": 30, "targetAnswer": 30, "inputType": "number", "cols": 10, "rows": 6, "dica": "Primeiro calcule a área original e multiplique por 3." },
+  {
+    "id": "N5_D7",
+    "unidade": 4,
+    "tipo": "cirurgia_area",
+    "phase1": { "pergunta": "Desenhe um retângulo 3x4. Qual a área?", "targetW": 3, "targetH": 4, "targetAnswer": 12 },
+    "phase2": { "pergunta": "A largura dobrou! Qual a nova área?", "extraW": 3, "targetAnswer": 24 },
+    "cols": 10, "rows": 8,
+    "dica": "O dobro da largura aumenta a área em 2 vezes."
+  },
+  {
+    "id": "N5_D8",
+    "unidade": 4,
+    "tipo": "cirurgia_area",
+    "phase1": { "pergunta": "Desenhe um quadrado de lado 4. Qual a área?", "targetW": 4, "targetH": 4, "targetAnswer": 16 },
+    "phase2": { "pergunta": "A altura aumentou 2 blocos! Qual a nova área?", "extraH": 2, "targetAnswer": 24 },
+    "cols": 10, "rows": 10,
+    "dica": "A nova altura será 4 + 2 = 6."
+  },
+  {
+    "id": "N5_D9",
+    "unidade": 4,
+    "tipo": "cirurgia_area",
+    "phase1": { "pergunta": "Desenhe um retângulo 2x5. Qual a área?", "targetW": 2, "targetH": 5, "targetAnswer": 10 },
+    "phase2": { "pergunta": "A área triplicou! Qual a nova área?", "extraW": 4, "targetAnswer": 30 },
+    "cols": 10, "rows": 12,
+    "dica": "Triplicar a área de 10 resulta em 30."
+  },
 
   // Tipo 4: A Escada (Composição Aditiva)
   { "id": "N5_D10", "unidade": 4, "tipo": "conversao_area", "pergunta": "Qual a área desta escada de 3 degraus largos?", "targetAnswer": 24, "inputType": "number", "cols": 10, "rows": 10, "prePaintedCoords": [[1, 1], [2, 1], [1, 2], [2, 2], [1, 3], [2, 3], [3, 3], [4, 3], [1, 4], [2, 4], [3, 4], [4, 4], [1, 5], [2, 5], [3, 5], [4, 5], [5, 5], [6, 5], [1, 6], [2, 6], [3, 6], [4, 6], [5, 6], [6, 6]], "dica": "Some a área de cada degrau individualmente." },
