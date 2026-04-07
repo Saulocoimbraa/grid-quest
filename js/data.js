@@ -128,7 +128,7 @@ const novosDesafios = [
       { "tipo": "cirurgia_area", "nivel": 8, "phase1": { "pergunta": "Desenhe um retângulo 3x4. Qual a área?", "targetW": 3, "targetH": 4, "targetAnswer": 12 }, "phase2": { "pergunta": "A largura dobrou! Qual a nova área?", "extraW": 3, "targetAnswer": 24 }, "cols": 10, "rows": 8, "id": "G_181", "unidade": 8 },
       { "tipo": "cirurgia_area", "nivel": 8, "phase1": { "pergunta": "Plante 2 filas por 5 colunas. Área?", "targetW": 5, "targetH": 2, "targetAnswer": 10 }, "phase2": { "pergunta": "A altura triplicou! Expansão concluída. Área total?", "extraH": 4, "targetAnswer": 30 }, "cols": 10, "rows": 8, "id": "G_182", "unidade": 8 },
       { "tipo": "cirurgia_area", "nivel": 8, "phase1": { "pergunta": "Construa a fundação 4x4. Resposta:", "targetW": 4, "targetH": 4, "targetAnswer": 16 }, "phase2": { "pergunta": "Evolução do prédio: Subiram 2 painéis vizinhos na lateral, base ampliou! Qual o total?", "extraW": 2, "targetAnswer": 24 }, "cols": 10, "rows": 8, "id": "G_183", "unidade": 8 },
-      { "tipo": "cirurgia_area", "nivel": 8, "phase1": { "pergunta": "Mureta simples: 1 de altura por 7 de comprimento.", "targetW": 7, "targetH": 1, "targetAnswer": 7 }, "phase2": { "pergunta": "O Muro cresceu 2 andares acima. Some a fortaleza:", "extraH": 2, "targetAnswer": 21 }, "cols": 10, "rows": 8, "id": "G_184", "unidade": 8 }
+      { "tipo": "cirurgia_area", "nivel": 8, "phase1": { "pergunta": "Mureta simples: 1 de altura por 7 de comprimento.", "targetW": 7, "targetH": 1, "targetAnswer": 7 }, "phase2": { "pergunta": "A mureta cresceu mais 2 metros de COMPRIMENTO. Qual a área total?", "extraW": 2, "targetAnswer": 9 }, "cols": 12, "rows": 4, "id": "G_184", "unidade": 8 }
     ]
   }
 ];
