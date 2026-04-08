@@ -55,10 +55,28 @@ class GameEngine {
          if (e.target.classList.contains('grid-cell')) {
             // Prioridade 1: Se a célula já estiver pintada de qualquer cor, desmarcar ao clicar (Togle universal)
             if (e.target.classList.contains('painted') || e.target.classList.contains('painted-yellow') || e.target.classList.contains('painted-blue') || e.target.classList.contains('painted-green') || e.target.classList.contains('painted-orange')) {
-               e.target.classList.remove('painted', 'painted-yellow', 'painted-blue', 'painted-green', 'painted-orange', 'area-highlight', 'border-top-p', 'border-right-p', 'border-bottom-p', 'border-left-p');
-               // Atualiza a lista de blocos (se for modo arrasto)
-               this.blocksDrawn = this.blocksDrawn.filter(b => !(b.r === parseInt(e.target.dataset.r) && b.c === parseInt(e.target.dataset.c)));
-               return; // Interrompe para não disparar o ciclo de cores ou novos arrastos imediatamente
+               const r = parseInt(e.target.dataset.r);
+               const c = parseInt(e.target.dataset.c);
+               
+               // Acha o bloco que contém essa célula
+               const blockIndex = this.blocksDrawn.findIndex(b => r >= b.r && r < b.r + b.h && c >= b.c && c < b.c + b.w);
+               
+               if (blockIndex !== -1) {
+                  const b = this.blocksDrawn[blockIndex];
+                  // Limpa visualmente TODA a área do bloco
+                  for (let _r = b.r; _r < b.r + b.h; _r++) {
+                     for (let _c = b.c; _c < b.c + b.w; _c++) {
+                        const cell = board.querySelector(`[data-r="${_r}"][data-c="${_c}"]`);
+                        if (cell) cell.classList.remove('painted', 'painted-yellow', 'painted-blue', 'painted-green', 'painted-orange', 'area-highlight', 'border-top-p', 'border-right-p', 'border-bottom-p', 'border-left-p');
+                     }
+                  }
+                  // Remove do array
+                  this.blocksDrawn.splice(blockIndex, 1);
+               } else {
+                  // Se não estiver em um bloco (modo pintura simples), remove apenas a célula
+                  e.target.classList.remove('painted', 'painted-yellow', 'painted-blue', 'painted-green', 'painted-orange', 'area-highlight', 'border-top-p', 'border-right-p', 'border-bottom-p', 'border-left-p');
+               }
+               return;
             }
 
             if (needsDrag) {
