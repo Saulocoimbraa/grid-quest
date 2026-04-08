@@ -804,20 +804,30 @@ class GameEngine {
                (b.w === ch.phase1.targetW && b.h === ch.phase1.targetH) || 
                (b.h === ch.phase1.targetW && b.w === ch.phase1.targetH)
             );
-            if (block && inputVal === ch.phase1.targetAnswer) {
-               // Success Phase 1
+            
+            if (block && (inputVal === ch.phase1.targetAnswer)) {
+               // Determine layout orientation for expansion
+               let isRotated = (block.w === ch.phase1.targetH); // User drew targetH as width
+               
                this.challengePhase = 2;
                
                // Piscar o desenho atual
-               document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow, .grid-cell.painted-blue, .grid-cell.painted-green, .grid-cell.painted-orange').forEach(el => {
+               document.querySelectorAll('.grid-cell.painted-orange, .grid-cell.painted').forEach(el => {
                    el.classList.add('blink-fast');
                    setTimeout(() => el.classList.remove('blink-fast'), 1000);
                });
 
                // Efeito de Ampliação
                setTimeout(() => {
-                  const extraW = ch.phase2.extraW || 0;
-                  const extraH = ch.phase2.extraH || 0;
+                  let extraW = ch.phase2.extraW || 0;
+                  let extraH = ch.phase2.extraH || 0;
+                  
+                  // Se rodado, troca as ampliações para bater com a geometria do usuário
+                  if (isRotated) {
+                     let temp = extraW;
+                     extraW = extraH;
+                     extraH = temp;
+                  }
                   
                   for (let r = block.r; r < block.r + block.h + extraH; r++) {
                      for (let c = block.c; c < block.c + block.w + extraW; c++) {
@@ -830,7 +840,6 @@ class GameEngine {
                      }
                   }
                   
-                  // Atualiza a pergunta e limpa input
                   const title = document.getElementById('question-title');
                   if (title) title.innerText = ch.phase2.pergunta;
                   const input = document.getElementById('answer-input');
@@ -853,11 +862,29 @@ class GameEngine {
          }
       }
       else if (type === "boss_challenge") {
-         let area = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow, .grid-cell.painted-blue, .grid-cell.painted-green, .grid-cell.painted-orange').length;
-         let needsInput = (tgtInput !== undefined && inputVal !== null);
+         let paintedCells = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow, .grid-cell.painted-blue, .grid-cell.painted-green, .grid-cell.painted-orange');
+         let area = paintedCells.length;
          let areaCorrect = (area === (ch.targetArea || ch.target));
-         let inputCorrect = needsInput ? (inputVal === tgtInput) : true;
-         isCorrect = areaCorrect && inputCorrect;
+         
+         // Se a pergunta menciona "retângulo" ou "quadrado", valida a forma
+         let needsShape = ch.pergunta.toLowerCase().includes("retangulo") || ch.pergunta.toLowerCase().includes("quadrado");
+         let shapeValid = true;
+         if (needsShape) {
+            let coords = Array.from(paintedCells).map(c => ({ r: parseInt(c.dataset.r), c: parseInt(c.dataset.c) }));
+            shapeValid = this.validateRectangle(coords, null, null, area);
+         }
+
+         let currentPeri = this.calculatePerimeter();
+         // Aceita tanto o valor fixo no JSON quanto o perímetro calculado do desenho do usuário
+         let inputCorrect = (inputVal !== null) ? (inputVal === tgtInput || inputVal === currentPeri) : true;
+         
+         isCorrect = areaCorrect && shapeValid && inputCorrect;
+         
+         if (!isCorrect && areaCorrect && !shapeValid) {
+            this.customFeedback = `A área está correta (${area}), mas você deve construir um RETÂNGULO perfeito!`;
+         } else if (!isCorrect && areaCorrect && shapeValid && !inputCorrect) {
+            this.customFeedback = `O desenho está perfeito! Mas o valor digitado (${inputVal}) não é o perímetro desta figura (${currentPeri}).`;
+         }
       }
       else {
          let paintedCells = document.querySelectorAll('.grid-cell.painted, .grid-cell.painted-yellow');
@@ -976,7 +1003,9 @@ class GameEngine {
 
          let ch = this.currentChallenge;
          let currentPeri = this.calculatePerimeter();
-         let isPerimeterConfusion = (ch.targetAnswer && inputVal === currentPeri && inputVal !== ch.targetAnswer);
+         
+         let asksPerimeter = (ch.pergunta + " " + (ch.dica || "")).toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").includes("perimetro");
+         let isPerimeterConfusion = (!asksPerimeter && ch.targetAnswer && inputVal === currentPeri && inputVal !== ch.targetAnswer);
 
          let feedbackText = "";
          if (isPerimeterConfusion) {
@@ -1009,7 +1038,6 @@ class GameEngine {
          this.playSound(150, 'sawtooth');
          setTimeout(() => document.body.classList.remove('shake'), 400);
 
-         // Avança para o próximo desafio mesmo com erro
          this.sessionCompleted.push(this.currentChallenge.id);
          this.saveProgress();
          this.playedThisSession++;
@@ -1023,95 +1051,6 @@ class GameEngine {
    }
 
    finishSession() {
-      // Hidden standard overlay
-      const overlayOrig = document.getElementById('feedback-overlay');
-      if (overlayOrig) overlayOrig.style.display = 'none';
-
-      // Create or show Summary Screen
-      let summaryScreen = document.getElementById('summary-screen');
-      if (!summaryScreen) {
-         summaryScreen = document.createElement('div');
-         summaryScreen.id = 'summary-screen';
-         summaryScreen.className = 'summary-screen';
-         document.body.appendChild(summaryScreen);
-      }
-
-      const avgTime = (this.sessionTotalTime / this.totalToPlay).toFixed(1);
-      const accuracy = Math.round((this.sessionCorrect / this.totalToPlay) * 100);
-
-      let starsCount = 1;
-      if (this.sessionErrors === 0) starsCount = 3;
-      else if (this.sessionErrors === 1) starsCount = 2; // Para total de 3 desafios
-
-      // Persiste as estrelas e desbloqueia a próxima fase
-      const prevStars = parseInt(localStorage.getItem(`geomaster_stars_N${this.level}`)) || 0;
-      const newStars = Math.max(prevStars, starsCount); // Guarda o melhor resultado
-      localStorage.setItem(`geomaster_stars_N${this.level}`, newStars);
-
-       const currentUnlocked = parseInt(localStorage.getItem('geomaster_unlocked_level')) || 1;
-       
-       // Verifica se é o último nível (Nível 8 - Final do Jogo)
-       if (this.level === 8) {
-          this.showGameCompleteScreen();
-          return;
-       }
-       
-       if (this.level >= currentUnlocked) {
-          localStorage.setItem('geomaster_unlocked_level', this.level + 1);
-       }
-
-      let starsHtml = `<div style="display:flex; justify-content:center; gap:8px; margin-bottom:15px;">`;
-      for (let i = 1; i <= 3; i++) {
-         let c = i <= starsCount ? "#facc15" : "#e5e7eb";
-         let p = i <= starsCount ? "drop-shadow(2px 2px 0px #000)" : "";
-         let fill = i <= starsCount ? 1 : 0;
-         starsHtml += `<span class="material-symbols-outlined" style="color:${c}; font-size:4rem; filter:${p}; font-variation-settings: 'FILL' ${fill};">star</span>`;
-      }
-      starsHtml += `</div>`;
-
-      summaryScreen.style.display = 'flex';
-      summaryScreen.className = 'fixed inset-0 z-[10000] bg-[#fffdf0] flex flex-col items-center justify-center p-6 text-center animate-in scale-in duration-300';
-      summaryScreen.innerHTML = `
-      <div class="bg-white rounded-3xl p-8 border-b-8 border-r-8 border-[#383830] shadow-[0_24px_48px_rgba(0,0,0,0.1)] w-full max-w-md">
-        <h1 class="text-4xl font-headline font-black text-[#2e7300] mb-2">Missão Cumprida!</h1>
-        ${starsHtml}
-        
-        <div class="grid grid-cols-2 gap-4 mb-8">
-          <div class="bg-[#84fb42] border-2 border-[#383830] p-4 rounded-3xl shadow-[4px_4px_0px_#383830]">
-             <span class="block text-3xl font-black">💎 ${this.sessionPoints}</span>
-             <span class="text-[10px] font-bold uppercase tracking-widest opacity-70">Diamantes</span>
-          </div>
-          <div class="bg-[#a3d8ff] border-2 border-[#383830] p-4 rounded-3xl shadow-[4px_4px_0px_#383830]">
-             <span class="block text-3xl font-black">${accuracy}%</span>
-             <span class="text-[10px] font-bold uppercase tracking-widest opacity-70">Precisão</span>
-          </div>
-          <div class="bg-surface-container border-2 border-[#383830] p-4 rounded-3xl shadow-[4px_4px_0px_#383830]">
-             <span class="block text-3xl font-black">${avgTime}s</span>
-             <span class="text-[10px] font-bold uppercase tracking-widest opacity-70">Média</span>
-          </div>
-          <div class="bg-[#ff9810] border-2 border-[#383830] p-4 rounded-3xl shadow-[4px_4px_0px_#383830]">
-             <span class="block text-3xl font-black">${this.sessionFastest === Infinity ? 0 : this.sessionFastest}s</span>
-             <span class="text-[10px] font-bold uppercase tracking-widest opacity-70">Recorde</span>
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-4">
-           <button class="w-full bg-[#2e7300] text-white font-black py-5 rounded-2xl text-xl shadow-[0_6px_0px_#1a4700] active:translate-y-1 active:shadow-[0_2px_0px_#1a4700] flex items-center justify-center gap-2" onclick="window.location.reload()">
-              <span class="material-symbols-outlined">refresh</span> REFAZER
-           </button>
-           <button class="w-full bg-[#84fb42] text-[#1a4700] font-black py-5 rounded-2xl text-xl shadow-[0_6px_0px_#296700]" onclick="window.location.href='game.html?level=${this.level + 1}'">►► Fase</button>
-           <button class="font-bold text-[#383830] opacity-60 hover:opacity-100 transition-opacity" onclick="window.location.href='index.html'">Voltar ao Menu</button>
-        </div>
-      </div>
-    `;
-
-       if (navigator.vibrate) navigator.vibrate([100, 100, 100, 100]);
-       this.playSound(800, 'sine');
-    }
-
-    showGameCompleteScreen() {
-       clearInterval(this.globalTimerInterval);
-       
        const overlayOrig = document.getElementById('feedback-overlay');
        if (overlayOrig) overlayOrig.style.display = 'none';
 
@@ -1123,77 +1062,158 @@ class GameEngine {
           document.body.appendChild(summaryScreen);
        }
 
-       const avgTime = (this.sessionTotalTime / this.totalToPlay).toFixed(1);
        const accuracy = Math.round((this.sessionCorrect / this.totalToPlay) * 100);
-
        let starsCount = 1;
        if (this.sessionErrors === 0) starsCount = 3;
        else if (this.sessionErrors === 1) starsCount = 2;
 
-       localStorage.setItem(`geomaster_stars_N8`, starsCount);
+       localStorage.setItem(`geomaster_stars_N${this.level}`, Math.max(starsCount, parseInt(localStorage.getItem(`geomaster_stars_N${this.level}`)) || 0));
 
-       let starsHtml = `<div style="display:flex; justify-content:center; gap:8px; margin-bottom:20px;">`;
+       if (starsCount >= 2) {
+          const currentUnlocked = parseInt(localStorage.getItem('geomaster_unlocked_level')) || 1;
+          if (this.level >= currentUnlocked) {
+             localStorage.setItem('geomaster_unlocked_level', this.level + 1);
+          }
+       }
+
+       // --- SURPRISE: Celebrate! ---
+       if (starsCount === 3 && typeof confetti === 'function') {
+          confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+       }
+
+       let starsHtml = `<div class="flex justify-center gap-3 mb-6 scale-110">`;
        for (let i = 1; i <= 3; i++) {
-          let c = i <= starsCount ? "#facc15" : "#e5e7eb";
-          let p = i <= starsCount ? "drop-shadow(2px 2px 0px #000)" : "";
-          let fill = i <= starsCount ? 1 : 0;
-          starsHtml += `<span class="material-symbols-outlined" style="color:${c}; font-size:4rem; filter:${p}; font-variation-settings: 'FILL' ${fill};">star</span>`;
+          let filled = i <= starsCount;
+          starsHtml += `<span class="material-symbols-outlined text-5xl transition-all duration-700" style="color:${filled ? '#fbbf24' : '#e2e8f0'}; font-variation-settings:'FILL' ${filled ? 1 : 0}">${filled ? 'star' : 'star'}</span>`;
        }
        starsHtml += `</div>`;
 
        summaryScreen.style.display = 'flex';
-       summaryScreen.style.flexDirection = 'column';
-       summaryScreen.style.alignItems = 'center';
-       summaryScreen.style.justifyContent = 'center';
-       summaryScreen.style.minHeight = '100vh';
-       summaryScreen.style.boxSizing = 'border-box';
-       summaryScreen.style.overflow = 'auto';
-       summaryScreen.className = 'fixed inset-0 z-[10000] bg-gradient-to-br from-[#1e3a8a] to-[#3b82f6] flex flex-col items-center justify-center p-2 text-center';
+       summaryScreen.className = 'fixed inset-0 z-[10000] bg-white/95 backdrop-blur-3xl flex flex-col items-center justify-center p-6 text-center animate-in zoom-in duration-500';
        
-       const containerWidth = window.innerWidth > 600 ? '400px' : '90vw';
-       
+       const nextLevelUnlocked = starsCount >= 2;
+
        summaryScreen.innerHTML = `
-       <div class="bg-white rounded-2xl p-4 border-b-4 border-r-4 border-[#383830] shadow-[0_12px_24px_rgba(0,0,0,0.3)]" style="width: ${containerWidth}; margin: 8px auto; max-height: 90vh; overflow-y: auto;">
-         <div class="w-full h-2 bg-gradient-to-r from-[#facc15] via-[#fbbf24] to-[#f59e0b]" style="margin-bottom: 10px; border-radius: 2px;"></div>
-         
-         <div style="font-size: 2.5rem; margin-bottom: 8px;">🏆</div>
-         <h1 style="font-size: 1.5rem; font-weight: 900; color: #1e3a8a; margin-bottom: 8px; font-family: 'Plus Jakarta Sans', sans-serif;">PARABÉNS!</h1>
-         <p style="font-size: 0.9rem; font-weight: 700; color: #3b82f6; margin-bottom: 6px;">Você dominou as habilidades de área!</p>
-         <p style="color: #64748b; font-size: 0.75rem; margin-bottom: 12px;">Todas as formas geométricas não têm mais segredos para você.</p>
-         
+       <div class="bg-white rounded-[3.5rem] p-12 border border-white shadow-[0_40px_80px_rgba(0,0,0,0.1)] w-full max-w-lg transform scale-100 transition-all relative overflow-hidden">
+         <!-- Top Action Bar -->
+         <div class="flex justify-between items-center mb-8">
+            <a href="index.html" class="p-3 rounded-full hover:bg-surface-variant text-on-surface/40 transition-colors">
+               <span class="material-symbols-outlined">arrow_back</span>
+            </a>
+            <div class="px-4 py-1 rounded-full bg-secondary-container text-on-surface text-xs font-black uppercase tracking-widest">
+               Nível ${this.level} Concluído
+            </div>
+            <div class="w-10"></div>
+         </div>
+
+         <h1 class="text-4xl font-headline font-black text-on-surface mb-6 uppercase tracking-tight">
+            ${starsCount === 3 ? '🎉 PERFEITO!' : (starsCount === 2 ? '👏 MUITO BEM!' : '💪 QUASE LÁ!')}
+         </h1>
+
          ${starsHtml}
          
-         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;">
-           <div style="background: #84fb42; border: 2px solid #383830; padding: 8px; border-radius: 12px; box-shadow: 2px 2px 0 #383830;">
-              <span style="display: block; font-size: 1.25rem; font-weight: 900;">💎 ${this.sessionPoints}</span>
-              <span style="font-size: 0.5rem; font-weight: 700; text-transform: uppercase; opacity: 0.7;">Diamantes</span>
+         <div class="grid grid-cols-2 gap-4 mb-10">
+           <div class="bg-primary/5 p-5 rounded-[2.5rem] transition-all hover:bg-primary/10">
+              <span class="block text-4xl font-black text-primary">💎 ${this.sessionPoints}</span>
+              <span class="text-[10px] font-black uppercase tracking-widest opacity-50">Pontos Ganhos</span>
            </div>
-           <div style="background: #a3d8ff; border: 2px solid #383830; padding: 8px; border-radius: 12px; box-shadow: 2px 2px 0 #383830;">
-              <span style="display: block; font-size: 1.25rem; font-weight: 900;">${accuracy}%</span>
-              <span style="font-size: 0.5rem; font-weight: 700; text-transform: uppercase; opacity: 0.7;">Precisão</span>
-           </div>
-           <div style="background: #f0f8ff; border: 2px solid #383830; padding: 8px; border-radius: 12px; box-shadow: 2px 2px 0 #383830;">
-              <span style="display: block; font-size: 1.25rem; font-weight: 900;">${avgTime}s</span>
-              <span style="font-size: 0.5rem; font-weight: 700; text-transform: uppercase; opacity: 0.7;">Média</span>
-           </div>
-           <div style="background: #ff9810; border: 2px solid #383830; padding: 8px; border-radius: 12px; box-shadow: 2px 2px 0 #383830;">
-              <span style="display: block; font-size: 1.25rem; font-weight: 900;">${this.sessionFastest === Infinity ? 0 : this.sessionFastest}s</span>
-              <span style="font-size: 0.5rem; font-weight: 700; text-transform: uppercase; opacity: 0.7;">Recorde</span>
+           <div class="bg-secondary/5 p-5 rounded-[2.5rem] transition-all hover:bg-secondary/10">
+              <span class="block text-4xl font-black text-[#d97706]">${accuracy}%</span>
+              <span class="text-[10px] font-black uppercase tracking-widest opacity-50">Precisão Final</span>
            </div>
          </div>
 
-         <div style="display: flex; flex-direction: column; gap: 10px;">
-            <button style="width: 100%; background: #1e3a8a; color: white; font-weight: 900; padding: 14px; border-radius: 10px; font-size: 0.9rem; box-shadow: 0 3px 0 #1e3a8a; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="window.location.reload()">
-               <span style="font-size: 1rem;">🔄</span> JOGAR NOVAMENTE
+         <div class="flex flex-col gap-5 mt-4">
+            ${nextLevelUnlocked ? `
+            <button class="w-full bg-secondary text-white font-black py-7 rounded-[2.5rem] text-2xl shadow-[0_10px_0px_#d97706] active:translate-y-[8px] active:shadow-[0_2px_0px] flex items-center justify-center gap-2 mb-2" 
+                    onclick="window.location.href='game.html?level=${this.level + 1}'">
+               <span class="material-symbols-outlined font-black">fast_forward</span>
+               PRÓXIMA MISSÃO
             </button>
-            <button style="width: 100%; background: #facc15; color: #1e3a8a; font-weight: 900; padding: 14px; border-radius: 10px; font-size: 0.9rem; box-shadow: 0 3px 0 #d97706; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;" onclick="window.location.href='index.html'">
-               <span style="font-size: 1rem;">🏠</span> VOLTAR AO INÍCIO
-            </button>
+            ` : ''}
+            
+            <div class="flex gap-4">
+               <button class="flex-1 bg-white border-2 border-primary/20 text-primary font-black p-[10px] rounded-[30px] text-lg hover:bg-primary/5 transition-all flex items-center justify-center gap-2" onclick="window.location.reload()">
+                  <span class="material-symbols-outlined">refresh</span> REFAZER
+               </button>
+               <button class="flex-1 bg-white border-2 border-on-surface/10 text-on-surface/60 font-black p-[10px] rounded-[30px] text-lg hover:bg-on-surface/5 transition-all flex items-center justify-center gap-2" onclick="window.location.href='index.html'">
+                  <span class="material-symbols-outlined">home</span> INÍCIO
+               </button>
+            </div>
          </div>
-        </div>
-      `;
+       </div>
+       `;
 
-       if (navigator.vibrate) navigator.vibrate([100, 100, 100, 100]);
+       if (navigator.vibrate) navigator.vibrate([100, 100]);
+       this.playSound(800, 'sine');
+    }
+
+    showGameCompleteScreen() {
+       clearInterval(this.globalTimerInterval);
+       const overlayOrig = document.getElementById('feedback-overlay');
+       if (overlayOrig) overlayOrig.style.display = 'none';
+
+       let summaryScreen = document.getElementById('summary-screen');
+       if (!summaryScreen) {
+          summaryScreen = document.createElement('div');
+          summaryScreen.id = 'summary-screen';
+          summaryScreen.className = 'summary-screen';
+          document.body.appendChild(summaryScreen);
+       }
+
+       const accuracy = Math.round((this.sessionCorrect / this.totalToPlay) * 100);
+       localStorage.setItem(`geomaster_stars_N8`, 3);
+
+       // --- SURPRISE EXTREME celebration ---
+       if (typeof confetti === 'function') {
+          var duration = 5 * 1000;
+          var animationEnd = Date.now() + duration;
+          var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 20000 };
+          function randomInRange(min, max) { return Math.random() * (max - min) + min; }
+          var interval = setInterval(function() {
+            var timeLeft = animationEnd - Date.now();
+            if (timeLeft <= 0) return clearInterval(interval);
+            var particleCount = 50 * (timeLeft / duration);
+            confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+            confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+          }, 250);
+       }
+
+       summaryScreen.style.display = 'flex';
+       summaryScreen.className = 'fixed inset-0 z-[10000] bg-white/95 backdrop-blur-3xl flex flex-col items-center justify-center p-6 text-center animate-in zoom-in duration-500';
+       
+       summaryScreen.innerHTML = `
+       <div class="bg-white rounded-[4.5rem] p-14 border border-white shadow-[0_50px_100px_rgba(0,0,0,0.15)] w-full max-w-xl transform scale-100 relative overflow-hidden">
+         <div class="absolute top-0 left-0 w-full h-4 bg-gradient-to-r from-secondary via-primary to-tertiary opacity-40"></div>
+         
+         <div class="text-8xl mb-10 animate-bounce">🥇</div>
+         <h1 class="text-6xl font-headline font-black text-on-surface mb-4 uppercase tracking-tighter">MESTRE SUPREMO!</h1>
+         <p class="text-2xl font-bold text-primary mb-12 opacity-80">Você completou toda a trilha das áreas!</p>
+         
+         <div class="grid grid-cols-2 gap-8 mb-14">
+           <div class="bg-primary/5 p-8 rounded-[3rem] border border-primary/10">
+              <span class="block text-5xl font-black text-primary">💎 ${this.sessionPoints}</span>
+              <span class="text-xs font-black uppercase tracking-widest opacity-40">Score da Sessão</span>
+           </div>
+           <div class="bg-tertiary/5 p-8 rounded-[3rem] border border-tertiary/10">
+              <span class="block text-5xl font-black text-tertiary">🏆 100%</span>
+              <span class="text-xs font-black uppercase tracking-widest opacity-40">Trilha Concluída</span>
+           </div>
+         </div>
+
+          <div class="flex flex-col gap-6 mt-6">
+            <div class="flex gap-4">
+               <button class="flex-1 bg-white border-2 border-primary/20 text-primary font-black p-[10px] rounded-[30px] text-xl hover:bg-primary/5 transition-all flex items-center justify-center gap-2" onclick="window.location.reload()">
+                  <span class="material-symbols-outlined">refresh</span> REFAZER
+               </button>
+               <button class="flex-1 bg-primary text-white font-black p-[10px] rounded-[30px] text-xl shadow-[0_8px_0px_#1e3a8a] active:translate-y-[6px] active:shadow-[0_2px_0px] flex items-center justify-center gap-3 transition-all" onclick="window.location.href='index.html'">
+                  <span class="material-symbols-outlined">home</span> INÍCIO
+               </button>
+            </div>
+            <p class="text-on-surface/40 font-bold mb-4">Você é incrível! Em breve novas unidades.</p>
+          </div>
+       </div>
+       `;
        this.playSound(800, 'sine');
     }
 

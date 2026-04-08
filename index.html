@@ -170,7 +170,7 @@
 
     <!-- Hero Section -->
     <section id="hero-section" class="mb-10 relative z-10 min-h-[75vh] flex items-center justify-center">
-      <div
+      <div id="hero-card"
         class="bg-white rounded-[2.5rem] p-10 border border-white shadow-[0_20px_40px_rgba(59,130,246,0.2)] relative overflow-hidden group w-full text-center flex flex-col items-center">
         <div class="relative z-10 flex flex-col items-center">
           <span
@@ -195,6 +195,31 @@
           <div class="text-[120px] filter drop-shadow-xl">🦉</div>
           <div class="absolute -top-10 -left-10 w-16 h-16 bg-secondary/30 rounded-full blur-xl"></div>
           <div class="absolute -bottom-5 -right-5 w-20 h-20 bg-primary/20 rounded-xl rotate-12 blur-sm"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Future Units Roadmap -->
+    <section id="future-units" class="mb-20 px-4">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="font-headline font-black text-2xl mb-8 flex items-center justify-center gap-2 opacity-50 uppercase tracking-widest">
+           <span class="material-symbols-outlined">rocket_launch</span> NOVAS UNIDADES EM BREVE
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 opacity-40 grayscale pointer-events-none">
+           <!-- Volume Section -->
+           <div class="bg-white rounded-[2.5rem] p-8 border-4 border-[#000] border-dashed shadow-[10px_10px_0px_#000] flex flex-col items-center text-center">
+              <div class="text-6xl mb-4">📦</div>
+              <h3 class="font-headline font-black text-2xl mb-2">3D & VOLUME</h3>
+              <p class="font-bold text-on-surface/60">Domine a terceira dimensão com cubos e prismas.</p>
+           </div>
+           
+           <!-- Statistics Section -->
+           <div class="bg-white rounded-[2.5rem] p-8 border-4 border-[#000] border-dashed shadow-[10px_10px_0px_#000] flex flex-col items-center text-center">
+              <div class="text-6xl mb-4">📊</div>
+              <h3 class="font-headline font-black text-2xl mb-2">GRÁFICOS & DADOS</h3>
+              <p class="font-bold text-on-surface/60">Analise o mundo real através de tabelas visuais.</p>
+           </div>
         </div>
       </div>
     </section>
@@ -318,12 +343,40 @@
       const score = localStorage.getItem('geomaster_score') || 0;
       document.getElementById('ui-score').innerText = score;
 
-      const levelLabel = Math.floor(score / 50) + 1;
-      document.getElementById('user-level-label').innerText = `Nível ${levelLabel}`;
+      const userLevel = Math.floor(score / 50) + 1;
+      document.getElementById('user-level-label').innerText = `Nível ${userLevel}`;
 
       // Garante que o nível 1 está sempre disponível
       if (!localStorage.getItem('geomaster_unlocked_level')) {
         localStorage.setItem('geomaster_unlocked_level', '1');
+      }
+
+      const unlocked = getUnlockedLevel();
+      const heroCard = document.getElementById('hero-card');
+      const owlWrapper = document.querySelector('.float-anim');
+      const isComplete = unlocked > LEVELS.length || (unlocked === LEVELS.length && getStars(LEVELS.length) >= 2);
+
+      if (isComplete) {
+         // UI Completion Theme - Reverting to smooth start look
+         heroCard.style.backgroundColor = '#f0fdf4'; // Subtle success green
+         heroCard.style.border = '1px solid #fff';
+         heroCard.style.boxShadow = '0 20px 40px rgba(16, 185, 129, 0.15)'; // Emerald soft shadow
+         
+         // Discrete Badge logic
+         const badgeContainer = document.querySelector('#hero-card .relative.z-10');
+         const statusBadge = document.createElement('span');
+         statusBadge.className = 'inline-block ml-2 px-3 py-1 rounded-full bg-[#84fb42] text-[#000] font-black text-[10px] uppercase tracking-widest border-2 border-[#000]';
+         statusBadge.innerText = 'CONCLUÍDO';
+         
+         const unitTag = badgeContainer.querySelector('span'); // The "Unidade Atual" tag
+         if (unitTag) {
+            unitTag.after(statusBadge);
+         }
+
+         const playBtn = document.getElementById('main-play-btn');
+         if (playBtn) {
+            playBtn.querySelector('span').innerText = 'REVISAR TRILHA';
+         }
       }
 
       buildTrail();
@@ -332,12 +385,16 @@
       const playBtn = document.getElementById('main-play-btn');
       const trailSection = document.getElementById('trail-section');
       const heroSection = document.getElementById('hero-section');
+      const futureSection = document.getElementById('future-units');
 
-      playBtn.addEventListener('click', () => {
-        heroSection.style.display = 'none';
-        trailSection.classList.remove('hidden');
-        window.scrollTo(0, 0);
-      });
+      if (playBtn) {
+         playBtn.addEventListener('click', () => {
+           heroSection.style.display = 'none';
+           if (futureSection) futureSection.style.display = 'none';
+           trailSection.classList.remove('hidden');
+           window.scrollTo(0, 0);
+         });
+      }
     });
   </script>
 </body>
